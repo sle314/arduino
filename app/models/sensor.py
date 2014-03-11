@@ -1,14 +1,21 @@
+# -*- coding: utf-8 -*-
+from random import randrange
+
 class Sensor:
 
-    def __init__(self, id=0, type="Sensor", value=0, unit=None):
+    def __init__(self, id):
         self.id = id
-        self.type = type
-        self.value = value
-        self.unit = unit
+        self.unit = ""
+        self.type = ""
+        self.value = 0
 
     def __str__(self):
         return "%s %s %s %s" % (self.id, self.type, self.value, self.unit)
 
-    def get(self, sensor_id):
-        self.id = sensor_id
-        return self
+    def to_json(self):
+        return {
+            'id': self.id,
+            'unit': self.unit,
+            'type': self.type,
+            'value': self.value
+        }
