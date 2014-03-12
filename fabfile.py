@@ -28,3 +28,11 @@ def start(port=None):
         app.run(host="0.0.0.0", port=int(port), debug=settings.DEBUG)
     else:
         app.run(host="0.0.0.0", debug=settings.DEBUG)
+
+def create_db():
+    from app.db import db
+    db.create_all()
+
+def drop_db():
+    from app.db import db
+    db.drop_all()
