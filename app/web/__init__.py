@@ -5,6 +5,7 @@ import os
 import locale
 
 from flask import Flask
+from flask.ext.sqlalchemy import SQLAlchemy
 
 locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
 reload(sys)
@@ -16,8 +17,10 @@ app = Flask("app",
             static_url_path='/static'
     )
 
-app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
+app.secret_key = 'A0sZr98j/3yX R~XHH!jmN]LWX/,?RT'
 
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////%s/app/db/arduino.db' % os.getcwd()
+db = SQLAlchemy(app)
 
 logger = logging.StreamHandler()
 

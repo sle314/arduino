@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+    {% if sensors %}
+    <div class="sensor-wrapper center">
+        {% for sensor in sensors %}
+            <div class="sensor">
+                <p>Identificator: {{sensor.identificator}}</p>
+                <p>Type: {{sensor.type}}</p>
+                <p>Value: {{sensor.value}} {{sensor.unit}}</p>
+                <p>
+                    {% if sensors | length > 1 %}
+                        <a href="/sensors/{{sensor.id}}">Details</a>
+                    {% endif %}
+                    <a href="/sensors/{{sensor.id}}/edit">Edit</a>
+                </p>
+            </div>
+        {% endfor %}
+    </div>
+    {% else %}
+        <p class="center">No sensor data</p>
+    {% endif %}
+{% endblock %}

@@ -30,9 +30,9 @@ def start(port=None):
         app.run(host="0.0.0.0", debug=settings.DEBUG)
 
 def create_db():
-    from app.db import db
+    from app.web import db
     db.create_all()
 
 def drop_db():
-    from app.db import db
+    from app.web import db
     db.drop_all()

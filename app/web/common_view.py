@@ -2,31 +2,51 @@
 from . import app
 from flask import render_template, request, session, redirect
 
-from app.models.sensor import Sensor
+from app.arduino.sensor import Sensor, SensorInteractor
 
 @app.route('/')
 def index():
-    return render_template("index.html" )
+    return redirect("/sensors/")
+
+@app.route('/sensors/', methods=['GET'])
+def get_sensors():
+    sensors = SensorInteractor.get_all()
+    return render_template("index.html", sensors = sensors )
 
 
-@app.route('/sensor/', methods=['POST'])
+@app.route('/sensors/', methods=['POST'])
 def store_sensor():
-    from random import randrange
-    sensor_id = randrange(0,9)
-    sensor = Sensor(sensor_id)
+    sensor = Sensor()
 
     for (key, value) in request.form.iteritems():
         setattr(sensor, key, value)
-    session[str(sensor_id)] = sensor.to_json()
-    return redirect("/sensor/%d" % sensor.id)
-    # return redirect("/")
+
+    sensor.save()
+    return redirect("/sensors/%d" % sensor.id)
 
 
-@app.route('/sensor/<int:sensor_id>/')
+@app.route('/sensors/<int:sensor_id>/')
 def get_sensor(sensor_id):
-    print session
-    if str(sensor_id) in session:
-        print session
-        return render_template("index.html", sensor = session[str(sensor_id)])
-    else:
-        return redirect("/")
+    sensor = SensorInteractor.get(sensor_id)
+    return render_template("index.html", sensors = [sensor] if sensor else None)
+
+@app.route('/sensors/<int:sensor_id>/', methods=['POST'])
+def update_sensor(sensor_id):
+    sensor = SensorInteractor.get(sensor_id)
+    sensor.save()
+    return render_template("index.html", sensors = [sensor] if sensor else None)
+
+
+@app.route('/sensors/<int:sensor_id>/edit/')
+def edit_sensor(sensor_id):
+    sensor = SensorInteractor.get(sensor_id)
+    for (key, value) in request.form.iteritems():
+        setattr(sensor, key, value)
+
+    sensor.save()
+    return render_template("/sensor/add.html", sensor = sensor)
+
+
+@app.route('/sensors/add/')
+def add_sensor():
+    return render_template("sensor/add.html")

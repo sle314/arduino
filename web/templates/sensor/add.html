@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="sensor-form">
+        <form action="/sensors/{% if sensor %}{{sensor.id}}/{% endif %}" method="POST">
+            <table>
+                <tr>
+                    <td class="label">
+                        <label for="identificator">Identificator:</label>
+                    </td>
+                    <td>
+                        <input class="rounded" name="identificator" type="text" value="{% if sensor %}{{sensor.identificator}}{% endif %}"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">
+                        <label for="type">Type:</label>
+                    </td>
+                    <td>
+                        <input class="rounded" name="type" type="text" value="{% if sensor %}{{sensor.type}}{% endif %}"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">
+                        <label for="value">Value:</label>
+                    </td>
+                    <td>
+                        <input class="rounded" name="value" type="text" value="{% if sensor %}{{sensor.value}}{% endif %}"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">
+                        <label for="unit">Unit:</label>
+                    </td>
+                    <td>
+                        <input class="rounded" name="unit" type="text" value="{% if sensor %}{{sensor.unit}}{% endif %}"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" class="center">
+                        <button type="submit">Submit</button>
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+{% endblock %}

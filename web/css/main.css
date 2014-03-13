@@ -1,0 +1,68 @@
+body{
+    padding-top: 50px;
+}
+.center{
+    text-align: center;
+}
+.rounded{
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    border: 1px solid #0ac;
+}
+.navigation{
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 50px;
+    background: #fff;
+    border-bottom: 1px solid #ccc;
+}
+.navigation ul{
+    list-style: none;
+    float: left;
+    margin-left: 20px;
+}
+.navigation h1{
+    float: left;
+    padding: 5px;
+    margin: 0px;
+}
+.navigation ul li{
+    float: left;
+    margin-left: 20px;
+}
+.container{
+    width: 950px;
+    margin: 0 auto;
+}
+
+.sensor-form{
+    width: 300px;
+    margin: 0 auto;
+}
+
+.sensor-form table tr td.label{
+    text-align: right;
+}
+.sensor-wrapper{
+    width: 850px;
+    margin: 0 auto;
+}
+.sensor{
+    width: 150px;
+    margin: 0 auto;
+    background: #eee;
+    margin-bottom: 20px;
+    margin-right: 9px;
+    border-bottom: 1px solid #ddd;
+    padding: 25px;
+    display: inline-block;
+    /*height: 150px;*/
+}
+
+a:link, a:active, a:hover, a:visited{
+    text-decoration: none;
+    color: #0ac;
+}
