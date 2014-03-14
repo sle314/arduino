@@ -6,14 +6,15 @@ import locale
 
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
+from app.settings import local as settings
 
 locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
 app = Flask("app",
-            template_folder='%s/web/templates/' % os.getcwd(),
-            static_folder='%s/web/' % os.getcwd(),
+            template_folder='%s/%s' % (os.getcwd(), settings.TEMPLATE_FOLDER),
+            static_folder='%s/%s' % (os.getcwd(), settings.STATIC_FOLDER),
             static_url_path='/static'
     )
 

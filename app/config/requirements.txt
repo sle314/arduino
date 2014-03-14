@@ -1,0 +1,6 @@
+Fabric==1.8.2
+Flask==0.10.1
+Flask-SQLAlchemy==1.0
+SQLAlchemy==0.9.3
+ipython==1.2.1
+pyserial==2.7

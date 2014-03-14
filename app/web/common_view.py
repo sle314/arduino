@@ -4,6 +4,8 @@ from flask import render_template, request, session, redirect
 
 from app.arduino.sensor import Sensor, SensorInteractor
 
+import threading
+
 @app.route('/')
 def index():
     return redirect("/sensors/")
@@ -30,9 +32,17 @@ def get_sensor(sensor_id):
     sensor = SensorInteractor.get(sensor_id)
     return render_template("index.html", sensors = [sensor] if sensor else None)
 
+@app.route('/sensors/<int:sensor_id>/register')
+def register_sensor(sensor_id):
+    SensorInteractor.register(sensor_id)
+    return redirect("/sensors/%d/" % sensor_id)
+
 @app.route('/sensors/<int:sensor_id>/', methods=['POST'])
 def update_sensor(sensor_id):
     sensor = SensorInteractor.get(sensor_id)
+    for (key, value) in request.form.iteritems():
+        setattr(sensor, key, value)
+
     sensor.save()
     return render_template("index.html", sensors = [sensor] if sensor else None)
 
