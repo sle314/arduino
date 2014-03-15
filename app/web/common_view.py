@@ -1,62 +1,65 @@
 # -*- coding: utf-8 -*-
 from . import app
-from flask import render_template, request, session, redirect
+from app.settings import local as settings
 
-from app.arduino.sensor import Sensor, SensorInteractor
+from flask import render_template, request, session, redirect, flash
+from requests.exceptions import ConnectionError
+import requests
 
-import threading
+@app.before_request
+def before_request():
+    print request
+    if 'gateway' not in session:
+        session['gateway'] = settings.GATEWAY
+        from app.helpers.base64_helper import b64encode_quote
+        session['auth'] = b64encode_quote(settings.AUTH)
+
 
 @app.route('/')
 def index():
-    return redirect("/sensors/")
-
-@app.route('/sensors/', methods=['GET'])
-def get_sensors():
-    sensors = SensorInteractor.get_all()
-    return render_template("index.html", sensors = sensors )
+    return render_template("index.html")
 
 
-@app.route('/sensors/', methods=['POST'])
-def store_sensor():
-    sensor = Sensor()
+@app.route('/register/', methods=['POST'])
+def register():
+    registered = False
+    gateway = request.form.get("gateway")
+    gateway = gateway if "http://" in gateway else "http://%s" % gateway
 
-    for (key, value) in request.form.iteritems():
-        setattr(sensor, key, value)
+    from app.helpers.base64_helper import b64encode_quote
+    auth = b64encode_quote(request.form.get("auth"))
 
-    sensor.save()
-    return redirect("/sensors/%d" % sensor.id)
+    headers = {'Authorization': 'Basic %s' % auth}
 
+    try:
+        r = requests.get("%s%s/%s" % (
+                gateway,
+                settings.APPLICATIONS,
+                settings.DEVICE_ID
+            ),
+            headers = headers
+        )
+    except ConnectionError:
+        flash("Cannot connect to specified gateway!")
+        session['theme'] = 'error'
 
-@app.route('/sensors/<int:sensor_id>/')
-def get_sensor(sensor_id):
-    sensor = SensorInteractor.get(sensor_id)
-    return render_template("index.html", sensors = [sensor] if sensor else None)
+    if r.status_code == 200:
+        registered = True
+        session['gateway'] = gateway
+        session['auth'] = auth
+        session['theme'] = 'success'
+        flash("Gateway set!")
+        flash("Gateway already registered!")
 
-@app.route('/sensors/<int:sensor_id>/register')
-def register_sensor(sensor_id):
-    SensorInteractor.register(sensor_id)
-    return redirect("/sensors/%d/" % sensor_id)
+        return render_template("/device/register.html", registered = registered)
 
-@app.route('/sensors/<int:sensor_id>/', methods=['POST'])
-def update_sensor(sensor_id):
-    sensor = SensorInteractor.get(sensor_id)
-    for (key, value) in request.form.iteritems():
-        setattr(sensor, key, value)
+    elif r.status_code == 404:
+        print r
+        flash("Could not authenticate!")
 
-    sensor.save()
-    return render_template("index.html", sensors = [sensor] if sensor else None)
-
-
-@app.route('/sensors/<int:sensor_id>/edit/')
-def edit_sensor(sensor_id):
-    sensor = SensorInteractor.get(sensor_id)
-    for (key, value) in request.form.iteritems():
-        setattr(sensor, key, value)
-
-    sensor.save()
-    return render_template("/sensor/add.html", sensor = sensor)
+    session['theme'] = 'error'
+    return redirect("/")
 
 
-@app.route('/sensors/add/')
-def add_sensor():
-    return render_template("sensor/add.html")
+
+

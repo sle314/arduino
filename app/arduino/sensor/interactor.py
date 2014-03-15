@@ -1,5 +1,6 @@
 from app.arduino.sensor.models import Sensor
 import threading
+from app.web import db
 
 class SensorInteractor:
 
@@ -16,4 +17,18 @@ class SensorInteractor:
     @staticmethod
     def register(sensor_id):
         threading.Timer(5, register(sensor_id)).start()
-        print "bravo"
+        print "registered"
+
+    @staticmethod
+    def delete(sensor_id):
+        sensor = Sensor.query.filter_by(id=sensor_id).first()
+        if sensor:
+            db.session.delete(sensor)
+            db.session.commit()
+            return True
+        return False
+
+    @staticmethod
+    def get_by_identificator(identificator):
+        sensor = Sensor.query.filter_by(identificator=identificator).first()
+        return sensor

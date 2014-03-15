@@ -1,31 +1,44 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{% block title%}Arduino YUN sensors{% endblock %}</title>
+    <link rel="stylesheet" media="screen" href="/static/libs/jGrowl/jquery.jgrowl.min.css" />
+    <link rel="stylesheet" media="screen" href="/static/libs/bootstrap/css/bootstrap.min.css" />
     <link rel="stylesheet" media="screen" href="/static/css/main.css" />
+    <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+    <script type="text/javascript" src="/static/libs/jGrowl/jquery.jgrowl.min.js"></script>
+    <script type="text/javascript" src="/static/libs/bootstrap/js/bootstrap.min.js"></script>
     {% block includes %}
     {% endblock %}
 </head>
 <body>
-    <div class="navigation">
-        <h1><a href="/">Arduino sensors</a></h1>
-        <ul>
-            <li>
-                <a href="/sensors">View sensors</a>
-            </li>
-            <li>
-                <a href="/sensors/add">Add sensor</a>
-            </li>
-        </ul>
+    <div class="header">
+        <div class="navigation">
+            {% include "navigation.html" %}
+        </div>
     </div>
     <div class="container">
         <div class="row">
-            <div class="">
+            <div class="col-md-12">
                 {% block content %}
                 {% endblock %}
             </div>
         </div>
     </div>
+    <script>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                $.jGrowl(
+                    "{{ message }}",
+                    { theme: "{{ session['theme'] }}" }
+                )
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    </script>
 </body>
 </html>

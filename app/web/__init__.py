@@ -23,6 +23,8 @@ app.secret_key = 'A0sZr98j/3yX R~XHH!jmN]LWX/,?RT'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////%s/app/db/arduino.db' % os.getcwd()
 db = SQLAlchemy(app)
 
+from app.helpers import filters
+
 logger = logging.StreamHandler()
 
 logger.setLevel(logging.INFO)
@@ -30,3 +32,4 @@ app.logger.addHandler(logger)
 app.logger.setLevel(logging.INFO)
 
 from common_view import *
+from sensor_view import *

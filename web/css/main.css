@@ -1,5 +1,5 @@
 body{
-    padding-top: 50px;
+    padding-bottom: 30px;
 }
 .center{
     text-align: center;
@@ -10,34 +10,41 @@ body{
     border-radius: 5px;
     border: 1px solid #0ac;
 }
-.navigation{
+/*.navigation{
     width: 100%;
     position: fixed;
     top: 0;
     left: 0;
-    height: 50px;
-    background: #fff;
-    border-bottom: 1px solid #ccc;
+    height: 70px;
+    background: #333;
+    border-bottom: 1px solid #999;
+    box-shadow: 0px 1px 10px #eee;
+}
+.navigation a:link, .navigation a:visited, .navigation a:active{
+    color: #fff;
+}
+.navigation a:hover{
+    color: #ddd;
 }
 .navigation ul{
     list-style: none;
     float: left;
     margin-left: 20px;
+    height: 50px;
 }
 .navigation h1{
     float: left;
-    padding: 5px;
+    min-width: 300px;
+    padding: 15px;
     margin: 0px;
 }
 .navigation ul li{
     float: left;
     margin-left: 20px;
-}
-.container{
-    width: 950px;
-    margin: 0 auto;
-}
-
+    height: 70px;
+    line-height: 70px;
+    vertical-align: center;
+}*/
 .sensor-form{
     width: 300px;
     margin: 0 auto;
@@ -62,7 +69,32 @@ body{
     /*height: 150px;*/
 }
 
-a:link, a:active, a:hover, a:visited{
+/*a:link, a:active, a:visited{
     text-decoration: none;
     color: #0ac;
 }
+
+a:hover{
+    color: #079;
+}*/
+
+div.jGrowl div.error{
+    background-color: #bb0000;
+}
+
+div.jGrowl div.warning{
+    background-color: #FF6600;
+}
+
+div.jGrowl div.success{
+    background-color: #00bb00;
+}
+
+.box{
+    background: #e7e7e7;
+    padding: 20px 0 20px 0;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+}
+
