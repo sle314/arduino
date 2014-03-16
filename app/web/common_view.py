@@ -3,16 +3,16 @@ from . import app
 from app.settings import local as settings
 
 from flask import render_template, request, session, redirect, flash
-from requests.exceptions import ConnectionError
+from requests.exceptions import ConnectionError, Timeout
 import requests
 
 @app.before_request
 def before_request():
-    print request
-    if 'gateway' not in session:
-        session['gateway'] = settings.GATEWAY
-        from app.helpers.base64_helper import b64encode_quote
-        session['auth'] = b64encode_quote(settings.AUTH)
+    if request.endpoint != "static":
+        if 'gateway' not in session:
+            session['gateway'] = settings.GATEWAY
+            from app.helpers.base64_helper import b64encode_quote
+            session['auth'] = b64encode_quote(settings.AUTH)
 
 
 @app.route('/')
@@ -37,29 +37,37 @@ def register():
                 settings.APPLICATIONS,
                 settings.DEVICE_ID
             ),
-            headers = headers
+            headers = headers,
+            timeout = 5
         )
-    except ConnectionError:
-        flash("Cannot connect to specified gateway!")
-        session['theme'] = 'error'
 
-    if r.status_code == 200:
-        registered = True
+        if r.status_code == 400:
+            session['theme'] = 'error'
+            flash("Could not authenticate!")
+            return redirect("/")
+
+        if r.status_code == 200:
+            registered = True        
+            session['theme'] = 'success'
+            flash("Gateway set!")
+            flash("App is already registered!")        
+
+        elif r.status_code == 404:
+            session['theme'] = 'warning'
+            flash("Either app is not registered or authorization is invalid!")
+
         session['gateway'] = gateway
         session['auth'] = auth
-        session['theme'] = 'success'
-        flash("Gateway set!")
-        flash("Gateway already registered!")
 
         return render_template("/device/register.html", registered = registered)
 
-    elif r.status_code == 404:
-        print r
-        flash("Could not authenticate!")
-
+    except ConnectionError:
+        flash("Cannot connect to specified gateway!")
+        
+    except Timeout:
+        flash("Request timed out. Wrong IP?")
+            
     session['theme'] = 'error'
     return redirect("/")
 
-
-
-
+    

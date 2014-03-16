@@ -17,7 +17,7 @@ def store_sensor():
     sensor = Sensor()
 
     for (key, value) in request.form.iteritems():
-        setattr(sensor, key, value)
+        setattr(sensor, key, value.lower().replace(" ", "_") if key=="identificator" else value.replace(" ", "_"))
     try:
         sensor.save()
     except IntegrityError:
@@ -36,14 +36,14 @@ def get_sensor(sensor_id):
 
 @app.route('/sensors/<int:sensor_id>/', methods=['POST'])
 def update_sensor(sensor_id):
-    sensor = SensorInteractor.get_by_identificator(request.form.get("identificator"))
+    sensor = SensorInteractor.get_by_identificator(request.form.get("identificator").lower().replace(" ", "_"))
     if sensor and sensor != SensorInteractor.get(sensor_id):
         flash("Sensor with same identifier already exists!")
         return redirect("/sensors/%d/edit/" % sensor_id)
 
     sensor = SensorInteractor.get(sensor_id)
     for (key, value) in request.form.iteritems():
-        setattr(sensor, key, value)
+        setattr(sensor, key, value.lower().replace(" ", "_") if key=="identificator" else value.replace(" ", "_"))
 
     sensor.save()
 

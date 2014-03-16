@@ -1,5 +1,5 @@
 from app.arduino.sensor.models import Sensor
-import threading
+# import threading
 from app.web import db
 
 class SensorInteractor:
@@ -16,7 +16,7 @@ class SensorInteractor:
 
     @staticmethod
     def register(sensor_id):
-        threading.Timer(5, register(sensor_id)).start()
+        # threading.Timer(5, register(sensor_id)).start()
         print "registered"
 
     @staticmethod
