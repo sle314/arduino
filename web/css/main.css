@@ -79,15 +79,15 @@ a:hover{
 }*/
 
 div.jGrowl div.error{
-    background-color: #bb0000;
+    background-color: #df2e1b;
 }
 
 div.jGrowl div.warning{
-    background-color: #E68A2E;
+    background-color: #f39c12;
 }
 
 div.jGrowl div.success{
-    background-color: #00bb00;
+    background-color: #149c82;
 }
 
 .box{

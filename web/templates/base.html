@@ -7,6 +7,7 @@
     <title>{% block title%}Arduino YUN sensors{% endblock %}</title>
     <link rel="stylesheet" media="screen" href="/static/libs/jGrowl/jquery.jgrowl.min.css" />
     <link rel="stylesheet" media="screen" href="/static/libs/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" media="screen" href="/static/css/bootstrap.min.css" />
     <link rel="stylesheet" media="screen" href="/static/css/main.css" />
     <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
     <script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
@@ -35,7 +36,7 @@
             {% for message in messages %}
                 $.jGrowl(
                     "{{ message }}",
-                    { theme: "{{ session['theme'] }}" }
+                    { theme: "{{ session['theme'] }}", position: "bottom-right" }
                 )
             {% endfor %}
         {% endif %}

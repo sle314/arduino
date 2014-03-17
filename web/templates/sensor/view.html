@@ -1,0 +1,38 @@
+{% if sensors %}
+<div class="row">
+    <div class="col-md-12 center">
+        {% for sensor in sensors %}
+            <div class="col-xs-12 col-sm-3 box">
+                <p>Id: {{sensor.id}}</p>
+                <p>Id: {{sensor.identificator}}</p>
+                <p>Type: {{sensor.type}}</p>
+                <p>Value: {{sensor.value}} {{sensor.unit}}</p>
+                <p>
+                    <div class="btn-group">
+                        {% if sensors | length > 1 %}
+                            <a class="btn btn-xs btn-info" href="/sensors/{{sensor.id}}/">Details</a>
+                        {% endif %}
+                        <a class="btn btn-xs btn-info" href="/sensors/{{sensor.id}}/edit/">Edit</a>
+                        {% if session['registered'] %}
+                            {% if sensor.registered %}
+                                <a class="btn btn-xs btn-info" href="/sensors/{{sensor.id}}/unregister/">Unregister</a>
+                            {% else %}
+                                <a class="btn btn-xs btn-info" href="/sensors/{{sensor.id}}/register/">Register</a>
+                            {% endif %}
+                            <a class="btn btn-xs btn-info" href="/sensors/{{sensor.id}}/send_value/">Send value</a>
+                        {% endif %}                        
+                    </div>
+                </p>
+                <p>
+                    <form method="POST" action="/sensors/delete/">
+                        <input type="hidden" name="sensor_id" value="{{ sensor.id }}" />
+                        <button class="btn btn-xs btn-danger" type="submit">Delete</button>
+                    </form>
+                </p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% else %}
+    <p class="center">No sensor data</p>
+{% endif %}

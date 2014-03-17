@@ -1,4 +1,4 @@
-<nav class="navbar navbar-default" role="navigation">
+<nav class="navbar navbar-inverse" role="navigation">
     <div class="container-fluid">
         <!-- Brand and toggle get grouped for better mobile display -->
         <div class="navbar-header">
@@ -15,6 +15,9 @@
         <div class="collapse navbar-collapse" id="navbar-collapse">
             <ul class="nav navbar-nav">
                 <li id="set-gateway"><a href="/"><span class="glyphicon glyphicon-hdd"></span>&nbsp;Set gateway</a></li>
+                {% if not session['error'] %}
+                    <li id="register-device"><a href="/register/"><span class="glyphicon glyphicon-th"></span>&nbsp;Device options</a></li>
+                {% endif %}
                 <li id="view-sensors"><a href="/sensors/"><span class="glyphicon glyphicon-eye-open"></span>&nbsp;View sensors</a></li>
                 <li id="add-sensor"><a href="/sensors/add/"><span class="glyphicon glyphicon-plus"></span>&nbsp;Add sensor</a></li>
             </ul>

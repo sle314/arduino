@@ -9,6 +9,8 @@ class Sensor(db.Model):
     unit = db.Column(db.String(120))
     value = db.Column(db.String(120))
     identificator = db.Column(db.String(100), unique=True)
+    registered = db.Column(db.Integer)
+    active = db.Column(db.Integer)
 
     def __str__(self):
         return "%s %s %s %s" % (self.id, self.type, self.value, self.unit)
