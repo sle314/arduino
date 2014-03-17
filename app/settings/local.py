@@ -15,7 +15,7 @@ AUTH = "http://nsc1.actility.com:8088/m2m/applications/TPK_d83bde37ce51fbeb14fdb
 POST_AUTH = "http://nsc1.actility.com:8088/m2m/applications/SYSTEM"
 # Y29hcCUzQS8vY3loLTAwNjA2ZTMzNDYwMS5hY3RpbGl0eS5jb20lM0E1NjgzL20ybS9hcHBsaWNhdGlvbnMvR0lQ
 
-DEVICE_ID = "arduino_yun_fer"
+DEVICE_ID = "arduino_yun_fer2"
 # DEVICE_ID = "APP_00137a0000005d98.1"
 
 MAX_NR_VALUES = 20

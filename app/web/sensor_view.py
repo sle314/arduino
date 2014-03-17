@@ -21,22 +21,17 @@ def store_sensor():
     sensor = Sensor()
 
     for (key, value) in request.form.iteritems():
+        if key == 'identificator' and value == "":
+            flash('You left the identificator blank, try again!', category='error')
+            return redirect('/sensors/add/')
         setattr(sensor, key, value.lower().replace(" ", "_") if key=="identificator" else value.replace(" ", "_"))
     try:
         sensor.save()
-        session['theme'] = 'success'
-        flash("Sensor added!")
+        flash("Sensor added!", category='success')
         return redirect("/sensors/%d/register/" % sensor.id)
     except IntegrityError:
-        session['theme'] = 'error'
-        flash("Sensor with same identifier already exists!")
+        flash("Sensor with same identifier already exists!", category='error')
         return render_template("sensor/add.html", sensor=sensor)
-
-
-@app.route('/sensors/<int:sensor_id>/')
-def get_sensor(sensor_id):
-    sensor = SensorInteractor.get(sensor_id)
-    return render_template("sensor/index.html", sensors = [sensor] if sensor else None)
 
 
 @app.route('/sensors/<int:sensor_id>/', methods=['POST'])
@@ -48,7 +43,7 @@ def update_sensor(sensor_id):
 
     if old_sensor:
         if sensor and sensor != old_sensor:
-            flash("Sensor with same identifier already exists!")
+            flash("Sensor with same identifier already exists!", category='warning')
             return redirect("/sensors/%d/edit/" % sensor_id)
 
         if old_sensor.identificator != identificator:
@@ -65,11 +60,10 @@ def update_sensor(sensor_id):
         else:
             sensor_send_value(sensor_id)
 
-        flash("Sensor edited!")
-        return render_template("sensor/index.html", sensors = [old_sensor] if old_sensor else None)
+        flash("Sensor edited!", category='success')
+        return redirect("/sensors/")
     else:
-        session['theme'] = 'error'
-        flash("Sensor doesn't exist!")
+        flash("Sensor doesn't exist!", category='error')
         return redirect("/sensors/")
 
 
@@ -91,34 +85,36 @@ def delete_sensor():
     sensor = SensorInteractor.get(sensor_id)
 
     if sensor:
-        ET.register_namespace("m2m", "http://uri.etsi.org/m2m")
+        if sensor.registered:
+            ET.register_namespace("m2m", "http://uri.etsi.org/m2m")
 
-        headers = {'Authorization': 'Basic %s' % session['post-auth']}
+            headers = {'Authorization': 'Basic %s' % session['post-auth']}
 
-        r = requests.delete("%s%s/%s%s/%s" % (
-                session['gateway'],
-                settings.APPLICATIONS,
-                settings.DEVICE_ID,
-                settings.CONTAINERS,
-                sensor.identificator
-            ),
-            headers = headers,
-            timeout = 5
-        )
+            r = requests.delete("%s%s/%s%s/%s" % (
+                    session['gateway'],
+                    settings.APPLICATIONS,
+                    settings.DEVICE_ID,
+                    settings.CONTAINERS,
+                    sensor.identificator
+                ),
+                headers = headers,
+                timeout = 5
+            )
 
-        if r.status_code == 204:
-            if SensorInteractor.delete(sensor_id):
-                session['theme'] = 'success'
-                flash("Sensor deleted!")
+            if r.status_code == 204:
+                if SensorInteractor.delete(sensor_id):
+                    flash("Sensor deleted!", category="success")
+                else:
+                    flash("Sensor was deleted on gateway but not locally!", category='error')
             else:
-                session['theme'] = 'error'
-                flash("Sensor was deleted on gateway but not locally!")
+                flash("Sensor could not be deleted on gateway!", category='error')
         else:
-            session['theme'] = 'error'
-            flash("Sensor could not be deleted on gateway!")
+            if SensorInteractor.delete(sensor_id):
+                flash("Sensor deleted!", category='success')
+            else:
+                flash("Sensor could not be deleted!", category='error')
     else:
-        session['theme'] = 'error'
-        flash('Sensor does not exist!')
+        flash('Sensor does not exist!', category='error')
 
     return redirect("/sensors/")
 
@@ -145,21 +141,17 @@ def unregister_sensor(sensor_id):
         if r.status_code == 204:
             sensor.registered = 0
             sensor.save()
-            session['theme'] = 'success'
-            flash("Sensor was removed from gateway!")
+            flash("Sensor was removed from gateway!", category='success')
         elif r.status_code == 404:
             sensor.registered = 0
             sensor.save()
-            session['theme'] = 'warning'
-            flash("Sensor was already removed!")
+            flash("Sensor was already removed!", category='warning')
         else:
-            session['theme'] = 'error'
-            flash("Sensor could not be removed!")
+            flash("Sensor could not be removed!", category='error')
     else:
-        session['theme'] = 'error'
-        flash('Sensor does not exist!')
+        flash('Sensor does not exist!', category='error')
 
-    return redirect("/sensors/%d/" % sensor_id)
+    return redirect("/sensors/")
 
 
 @app.route('/sensors/<int:sensor_id>/register/')
@@ -209,14 +201,12 @@ def register_sensor(sensor_id):
 
         sensor.registered = 1
         sensor.save()
-        session['theme'] = 'success'
-        flash('Sensor registered!')
+        flash('Sensor registered!', category='success')
 
     else:
-        session['theme'] = 'error'
-        flash('Sensor does not exist!')
+        flash('Sensor does not exist!', category='error')
 
-    return redirect("sensors/%d/" % sensor_id)
+    return redirect("/sensors/")
 
 
 @app.route('/sensors/<int:sensor_id>/send_value/')
@@ -246,11 +236,9 @@ def sensor_send_value(sensor_id):
             data = ET.tostring(root)
         )
 
-        session['theme'] = 'success'
-        flash('Sensor value successfully sent!')
+        flash('Sensor value successfully sent!', category='success')
 
     else:
-        session['theme'] = 'error'
-        flash('Sensor does not exist!')
+        flash('Sensor does not exist!', category='error')
 
-    return redirect("sensors/%d/" % sensor_id)
+    return redirect("/sensors/")

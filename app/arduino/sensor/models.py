@@ -5,12 +5,14 @@ from app.web import db
 class Sensor(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    type = db.Column(db.String(80))
+    type = db.Column(db.String(10))
     unit = db.Column(db.String(120))
     value = db.Column(db.String(120))
     identificator = db.Column(db.String(100), unique=True)
     registered = db.Column(db.Integer)
     active = db.Column(db.Integer)
+    measuring = db.Column(db.String(80))
+    pin = db.Column(db.Integer)
 
     def __str__(self):
         return "%s %s %s %s" % (self.id, self.type, self.value, self.unit)

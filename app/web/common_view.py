@@ -68,28 +68,25 @@ def set_gateway():
 
                 if r.status_code == 200:
                     session['registered'] = True
-                    session['theme'] = 'success'
-                    flash("Gateway set!")
-                    flash("Device is already registered!")
+                    flash("Gateway set!", category='success')
+                    flash("Device is already registered!", category='success')
                     return redirect("/sensors/")
 
                 elif r.status_code == 404:
-                    session['theme'] = 'warning'
-                    flash("Device is not registered.")
+                    flash("Device is not registered.", category='warning')
                     return redirect("/register/")
             else:
-                flash('Response was not a valid accessRights XML!')
+                flash('Response was not a valid accessRights XML!', category='error')
 
         elif r.status_code == 400 or r.status_code == 404:
-            flash('Wrong authorization URI!')
+            flash('Wrong authorization URI!', category='error')
 
     except ConnectionError:
-        flash("Cannot connect to specified gateway!")
+        flash("Cannot connect to specified gateway!", category='error')
 
     except Timeout:
-        flash("Request timed out. Wrong IP?")
+        flash("Request timed out. Wrong IP?", category='error')
 
-    session['theme'] = 'error'
     session['error'] = True
     return redirect('/')
 
@@ -100,8 +97,7 @@ def register():
     if not session['error']:
         return render_template('device/register.html')
     else:
-        session['theme'] = 'error'
-        flash('Gateway error!')
+        flash('Gateway error!', category='error')
         return redirect('/')
 
 @app.route('/unregister/')
@@ -124,22 +120,19 @@ def remove_device():
         )
 
     if r.status_code == 204:
-        session['theme'] = 'success'
-        flash('Device successfully removed from gateway!')
+        flash('Device successfully removed from gateway!', category='success')
         session['registered'] = False
         for sensor in SensorInteractor.get_all():
             sensor.registered = 0
             sensor.save()
     elif r.status_code == 404:
-        session['warning'] = 'success'
-        flash('Device is already removed!')
+        flash('Device is already removed!', category='warning')
         session['registered'] = False
         for sensor in SensorInteractor.get_all():
             sensor.registered = 0
             sensor.save()
     else:
-        session['theme'] = 'error'
-        flash('Something went wrong!')
+        flash('Something went wrong!', category='error')
     return redirect('/register/')
 
 
@@ -182,25 +175,19 @@ def register_device():
                 data = ET.tostring(tree.getroot())
             )
 
-            session['theme'] = 'success'
-            flash('Device successfully registered!')
-
+            flash('Device successfully registered!', category='success')
             session['registered'] = True
 
         elif r.status_code == 400 or r.status_code == 401:
-            session['theme'] = 'error'
-            flash('Wrong authorization for registration!')
+            flash('Wrong authorization for registration!', category='error')
 
         else:
-            session['theme'] = 'error'
-            flash('Something went wrong!')
+            flash('Something went wrong!', category='error')
 
     except ConnectionError:
-        session['theme'] = 'error'
-        flash("Cannot connect to specified gateway!")
+        flash("Cannot connect to specified gateway!", category='error')
 
     except Timeout:
-        session['theme'] = 'error'
-        flash("Request timed out. Wrong IP?")
+        flash("Request timed out. Wrong IP?", category='error')
 
     return redirect('/register/')

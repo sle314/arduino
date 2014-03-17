@@ -1,16 +1,28 @@
 {% extends "base.html" %}
 {% block content %}
     <div class="row">
-        <div class="col-xs-offset-1 col-xs-10 box">
-            <div class="col-xs-offset-2 col-xs-8">
-                <form class="form" action="/sensors/{% if sensor and sensor.id %}{{sensor.id}}/{% endif %}" method="POST">
+        <div class="col-sm-offset-1 col-sm-10 col-xs-12">
+            <div class="box">
+                <form class="form" id="sensor-form" action="/sensors/{% if sensor and sensor.id %}{{sensor.id}}/{% endif %}" method="POST">
                     <div class="form-group">
                         <label class="control-label" for="identificator">Identificator:</label>
                         <input class="form-control" name="identificator" type="text" value="{% if sensor %}{{sensor.identificator}}{% endif %}"/>
                     </div>
                     <div class="form-group">
-                        <label class="control-label" for="type">Type:</label>
-                        <input class="form-control" name="type" type="text" value="{% if sensor %}{{sensor.type}}{% endif %}"/>
+                        <label class="control-label" for="measuring">Type:</label>
+                        <input class="form-control" name="measuring" type="text" value="{% if sensor %}{{sensor.measuring}}{% endif %}"/>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label" for="type">Digital/analog:</label>
+                        <select class="form-control" name="type">
+                            <option value="digital" {% if sensor and sensor.type=='digital'%}selected="selected"{% endif %}>Digital</option>
+                            <option value="analog" {% if sensor and sensor.type=='analog'%}selected="selected"{% endif %}>Analog</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label" for="pin">Pin:</label>
+                        <select class="form-control" name="pin">
+                        </select>
                     </div>
                     <div class="form-group">
                         <label class="control-label" for="value">Value:</label>
@@ -20,8 +32,8 @@
                         <label class="control-label" for="unit">Unit:</label>
                         <input class="form-control" name="unit" type="text" value="{% if sensor %}{{sensor.unit}}{% endif %}"/>
                     </div>
-                    <div class="form-group col-xs-offset-5">
-                        <button class="btn btn-info col-md-4" type="submit">
+                    <div class="form-group center">
+                        <button class="btn btn-info" type="submit">
                             <span class="glyphicon glyphicon-ok"></span>
                             &nbsp;
                             {% if sensor and sensor.id %}
@@ -41,6 +53,40 @@
     <script type="text/javascript">
         $(document).ready(function(){
             $("#navbar-collapse li#add-sensor").addClass("active")
-        })
+
+            {% if sensor and sensor.type %}$("select[name='type']").val("{{ sensor.type }}"){% endif %}
+
+            $("select[name='type']")
+            .on('change',
+                function(event){
+                    $("select[name='pin']").empty();
+                    if ($(event.currentTarget).val() == "digital"){
+                        for (var i=0; i<13; i++){
+                            $("<option/>", {
+                                value: i,
+                            })
+                            .text(i)
+                            .appendTo("select[name='pin']");
+                        }
+                    }
+                    else{
+                        for (var i=0; i<3; i++){
+                            $("<option/>", {
+                                value: i,
+                            })
+                            .text(i)
+                            .appendTo("select[name='pin']");
+                        }
+                    }
+                }
+            );
+
+            $("select[name='type']").trigger('change');
+
+            {% if sensor and sensor.pin %}$("select[name='pin']").val("{{ sensor.pin }}"){% endif %}
+
+            utils.validateForm('sensor-form');
+
+        });
     </script>
 {% endblock %}
