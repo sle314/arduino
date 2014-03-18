@@ -32,7 +32,7 @@ var utils = {
                 }
             });
             if (fail){
-            	utils.flashMessage("Some inputs have been left blank!", "error");
+            	utils.flashMessage("Some inputs have been left blank!", '{ "theme" : "error" }');
             	return false;
             }
         });

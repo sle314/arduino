@@ -7,7 +7,7 @@ from flask import render_template, request, session, redirect, flash, json
 from requests.exceptions import ConnectionError, Timeout
 from app.arduino.sensor import SensorInteractor
 from app.arduino.gateway import Gateway, GatewayInteractor
-from app.helpers.request_helper import check_gateway, check_device
+from app.helpers.request_helper import check_gateway, check_device, init_device, init_descriptor, send_descriptor, init_sensor, send_sensor_value, delete_device
 import xml.etree.ElementTree as ET
 import requests
 
@@ -42,7 +42,6 @@ def gateway():
                     return redirect("/")
 
                 r = check_device(address, authorization)
-                print r
 
                 if r != False:
                     if r.status_code == 200:
@@ -66,59 +65,38 @@ def gateway():
 def register_device_on_gateway(gateway_id):
     gateway = GatewayInteractor.get(gateway_id)
     if gateway:
-        ET.register_namespace("m2m", "http://uri.etsi.org/m2m")
-        tree = ET.parse('%s/app/web/xml/device.xml' % os.getcwd())
+        r = init_device(gateway.address, gateway.post_authorization)
 
-        root = tree.getroot()
-        root.set('appId', settings.DEVICE_ID)
-
-        search_string = ET.SubElement(root, 'm2m:searchString')
-        search_string.text = 'ETSI.ObjectTechnology/ACTILITY.%s' % settings.DEVICE_ID
-
-        headers = {'Authorization': 'Basic %s' % gateway.post_authorization, "content-type":"application/xml"}
-
-        try:
-            r = requests.post("%s%s" % (
-                        gateway.address,
-                        settings.APPLICATIONS
-                    ),
-                    headers = headers,
-                    timeout = 5,
-                    data = ET.tostring(root)
-                )
-
+        if r != False:
             if r.status_code == 201 or r.status_code == 409:
 
-                tree = ET.parse('%s/app/web/xml/device_descriptor.xml' % os.getcwd())
+                r = init_descriptor(gateway.address, gateway.post_authorization)
 
-                r = requests.post("%s%s/%s%s" % (
-                        gateway.address,
-                        settings.APPLICATIONS,
-                        settings.DEVICE_ID,
-                        settings.CONTAINERS
-                    ),
-                    headers = headers,
-                    timeout = 5,
-                    data = ET.tostring(tree.getroot())
-                )
+                if r != False:
+                    print r.status_code
 
-                flash('Device successfully registered!', category={ 'theme': 'success' } )
-                gateway.device_registered = True
-                gateway.save()
+                    r = send_descriptor(gateway.address, gateway.post_authorization)
+
+                    if r != False:
+                        sensors = SensorInteractor.get_all_active()
+
+                        if sensors:
+                            for sensor in sensors:
+                                if sensor.active:
+                                    r = init_sensor(gateway.address, gateway.post_authorization, sensor.identificator)
+                                    if r != False:
+                                        sensor.save()
+                                        r = send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor.value)
+
+                        flash('Device successfully registered!', category={ 'theme': 'success' } )
+                        gateway.device_registered = True
+                        gateway.save()
 
             elif r.status_code == 400 or r.status_code == 401:
                 flash('Wrong authorization for registration!', category={ 'theme': 'error' } )
 
             else:
                 flash('Something went wrong!', category={ 'theme': 'error' } )
-
-        except ConnectionError:
-            flash("Cannot connect to specified gateway!", category={ 'theme': 'error' } )
-
-        except Timeout:
-            flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
-
-        gateway.device_registered = False
     else:
         flash("Gateway does not exist!", category={ 'theme': 'error' } )
 
@@ -130,41 +108,30 @@ def remove_device_from_gateway(gateway_id):
 
     gateway = GatewayInteractor.get(gateway_id)
     if gateway:
-        headers = {'Authorization': 'Basic %s' % gateway.post_authorization}
 
-        r = requests.delete("%s%s/%s" % (
-                gateway.address,
-                settings.APPLICATIONS,
-                settings.DEVICE_ID
-            ),
-            headers = headers,
-            timeout = 5
-        )
+        r = delete_device(gateway.address, gateway.post_authorization)
 
-        if r.status_code == 204:
-            flash('Device successfully removed from gateway!', category={ 'theme': 'success' } )
-            gateway.device_registered = False
-            gateway.save()
-            for sensor in SensorInteractor.get_all():
-                sensor.registered = False
-                sensor.save()
-        elif r.status_code == 404:
-            flash('Device is already removed!', category={ 'theme': 'warning' } )
-            gateway.device_registered = False
-            gateway.save()
-            for sensor in SensorInteractor.get_all():
-                sensor.registered = False
-                sensor.save()
-        else:
-            flash('Something went wrong!', category={ 'theme': 'error' } )
+        if r != False:
+            if r.status_code == 204:
+                flash('Device successfully removed from gateway!', category={ 'theme': 'success' } )
+                gateway.device_registered = False
+                gateway.save()
+            elif r.status_code == 404:
+                flash('Device is already removed!', category={ 'theme': 'warning' } )
+                gateway.device_registered = False
+                gateway.save()
+            else:
+                flash('Something went wrong!', category={ 'theme': 'error' } )
     else:
         flash("Gateway does not exist!", category={ 'theme': 'error' } )
+
     return redirect('/')
 
 
 @app.route('/gateway/delete/', methods=['POST'])
 def remove_gateway():
     gateway_id = request.form.get('gateway_id')
+    remove_device_from_gateway(gateway_id)
     if GatewayInteractor.delete(gateway_id):
         flash("Gateway successfully removed!", category={ 'theme': 'success' } )
     else:

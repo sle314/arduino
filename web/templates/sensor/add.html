@@ -40,13 +40,6 @@
                                     active <input type="checkbox" name="is_active" {% if sensor and sensor.active %}checked{% endif %} />
                                 </label>
                             </div>
-                            {% if not sensor or (sensor and not sensor.registered) %}
-                                <div class="checkbox">
-                                    <label>
-                                        register when added <input type="checkbox" name="register" />
-                                    </label>
-                                </div>
-                            {% endif %}
                         </div>
                         <div class="col-xs-12 center">
                             <button class="btn btn-info" type="submit">

@@ -8,7 +8,6 @@ class Sensor(db.Model):
     unit = db.Column(db.String(120))
     value = db.Column(db.String(120))
     identificator = db.Column(db.String(100), unique=True)
-    registered = db.Column(db.Boolean, default=False)
     active = db.Column(db.Boolean, default=False)
     measuring = db.Column(db.String(80))
     pin = db.Column(db.Integer, default=0)

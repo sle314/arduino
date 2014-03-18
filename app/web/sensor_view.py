@@ -7,7 +7,10 @@ import os
 from app.settings import local as settings
 import requests
 
+from app.arduino.gateway import GatewayInteractor
 from app.arduino.sensor import Sensor, SensorInteractor
+
+from app.helpers import request_helper
 
 
 @app.route('/sensors/', methods=['GET'])
@@ -20,9 +23,6 @@ def get_sensors():
 def store_sensor():
     sensor = Sensor()
 
-    if request.form.get('is_active'):
-        sensor.active = True
-
     for (key, value) in request.form.iteritems():
         if key == 'identificator' and value == "":
             flash('You left the identificator blank, try again!', category={ 'theme': 'error' } )
@@ -30,6 +30,10 @@ def store_sensor():
         if key not in ['is_active', 'register']:
             setattr(sensor, key, value.lower().replace(" ", "_") if key=="identificator" else value.replace(" ", "_"))
     try:
+        if request.form.get('is_active'):
+            sensor.active = True
+            sensor.save()
+            activate_sensor(sensor.id)
         sensor.save()
         flash("Sensor added!", category={ 'theme': 'success' } )
         if (request.form.get('register')):
@@ -54,27 +58,23 @@ def update_sensor(sensor_id):
             return redirect("/sensors/%d/edit/" % sensor_id)
 
         if old_sensor.identificator != identificator:
-            identificator_changed = True
-            reregister = False
-            if old_sensor.registered:
-                reregister = True
-                unregister_sensor(sensor_id)
-
-        if request.form.get('is_active'):
-            old_sensor.active = True
-        else:
-            old_sensor.active = False
+            gateways = GatewayInteractor.get_all_device_registered()
+            if gateways:
+                for gateway in gateways:
+                    request_helper.delete_sensor(gateway.address, gateway.post_authorization, old_sensor.identificator)
 
         for (key, value) in request.form.iteritems():
             if key not in ['is_active', 'register']:
                 setattr(old_sensor, key, value.lower().replace(" ", "_") if key=="identificator" else value.replace(" ", "_"))
 
-        old_sensor.save()
-
-        if identificator_changed and reregister:
-            register_sensor(sensor_id)
-        # elif old_sensor.registered:
-        #     sensor_send_value(sensor_id)
+        if request.form.get('is_active'):
+            old_sensor.active = True
+            old_sensor.save()
+            activate_sensor(sensor_id)
+        else:
+            old_sensor.active = False
+            old_sensor.save()
+            deactivate_sensor(sensor_id)
 
         flash("Sensor edited!", category={ 'theme': 'success' } )
         return redirect("/sensors/#%d" % old_sensor.id)
@@ -95,37 +95,37 @@ def add_sensor():
 
 
 @app.route('/sensors/delete/', methods=['POST'])
-def delete_sensor():
-    sensor_id = request.form.get('sensor_id')
+def delete_sensor(sensor_id=None):
+    if not sensor_id:
+        sensor_id = request.form.get('sensor_id')
 
     sensor = SensorInteractor.get(sensor_id)
 
     if sensor:
-        if sensor.registered:
-            ET.register_namespace("m2m", "http://uri.etsi.org/m2m")
+        if sensor.active:
 
-            headers = {'Authorization': 'Basic %s' % session['post-auth']}
+            gateways = GatewayInteractor.get_all_device_registered()
 
-            r = requests.delete("%s%s/%s%s/%s" % (
-                    session['gateway'],
-                    settings.APPLICATIONS,
-                    settings.DEVICE_ID,
-                    settings.CONTAINERS,
-                    sensor.identificator
-                ),
-                headers = headers,
-                timeout = 5
-            )
+            if gateways:
+                for gateway in gateways:
 
-            if r.status_code == 204:
-                if SensorInteractor.delete(sensor_id):
-                    flash("Sensor deleted!", category={ 'theme': 'success' } )
-                else:
-                    flash("Sensor was deleted on gateway but not locally!", category={ 'theme': 'error' } )
-                    return redirect("/sensors/#%d" % sensor.id)
+                    r = request_helper.delete_sensor(gateway.address, gateway.post_authorization, sensor.identificator)
+
+                    if r != False:
+                        if r.status_code == 204:
+                            if SensorInteractor.delete(sensor_id):
+                                request_helper.send_descriptor(gateway.address, gateway.post_authorization)
+                                flash("Sensor deleted from gateway %s!" % gateway.address, category={ 'theme': 'success' } )
+                            else:
+                                request_helper.send_descriptor(gateway.address, gateway.post_authorization)
+                                flash("Sensor was deleted on gateway %s but not locally!" % gateway.address, category={ 'theme': 'error' } )
+                                return redirect("/sensors/#%d" % sensor.id)
+                        else:
+                            flash("Sensor could not be deleted on gateway %s!" % gateway.address, category={ 'theme': 'error' } )
+                            return redirect("/sensors/#%d" % sensor.id)
             else:
-                flash("Sensor could not be deleted on gateway!", category={ 'theme': 'error' } )
-                return redirect("/sensors/#%d" % sensor.id)
+                flash("No gateways with registered device", category={ 'theme': 'warning' } )
+
         else:
             if SensorInteractor.delete(sensor_id):
                 flash("Sensor deleted!", category={ 'theme': 'success' } )
@@ -137,130 +137,26 @@ def delete_sensor():
 
     return redirect("/sensors/")
 
-@app.route('/sensors/<int:sensor_id>/unregister/')
-def unregister_sensor(sensor_id):
-    sensor = SensorInteractor.get(sensor_id)
-
-    if sensor:
-        headers = {'Authorization': 'Basic %s' % session['post-auth']}
-
-        r = requests.delete("%s%s/%s%s/%s" % (
-                session['gateway'],
-                settings.APPLICATIONS,
-                settings.DEVICE_ID,
-                settings.CONTAINERS,
-                sensor.identificator
-            ),
-            headers = headers,
-            timeout = 5
-        )
-
-        print r.status_code
-
-        if r.status_code == 204:
-            sensor.registered = False
-            sensor.save()
-            flash("Sensor was removed from gateway!", category={ 'theme': 'success' } )
-        elif r.status_code == 404:
-            sensor.registered = False
-            sensor.save()
-            flash("Sensor was already removed!", category={ 'theme': 'warning' } )
-        else:
-            flash("Sensor could not be removed!", category={ 'theme': 'error' } )
-    else:
-        flash('Sensor does not exist!', category={ 'theme': 'error' } )
-
-    return redirect("/sensors/#%d" % sensor_id)
-
-
-@app.route('/sensors/<int:sensor_id>/register/')
-def register_sensor(sensor_id):
-    sensor = SensorInteractor.get(sensor_id)
-
-    print sensor.identificator
-
-    if sensor:
-        ET.register_namespace("m2m", "http://uri.etsi.org/m2m")
-        tree = ET.parse('%s/app/web/xml/sensor.xml' % os.getcwd())
-        root = tree.getroot()
-
-        root.set('m2m:id', sensor.identificator)
-        root[2].text = str(settings.MAX_NR_VALUES)
-
-        headers = {'Authorization': 'Basic %s' % session['post-auth'], "content-type":"application/xml"}
-
-        r = requests.post("%s%s/%s%s" % (
-                session['gateway'],
-                settings.APPLICATIONS,
-                settings.DEVICE_ID,
-                settings.CONTAINERS
-            ),
-            headers = headers,
-            timeout = 5,
-            data = ET.tostring(root)
-        )
-
-        tree = ET.parse('%s/app/web/xml/sensor_value.xml' % os.getcwd())
-        root = tree.getroot()
-
-        root.set('val', str(sensor.value))
-
-        r = requests.post("%s%s/%s%s/%s%s" % (
-                session['gateway'],
-                settings.APPLICATIONS,
-                settings.DEVICE_ID,
-                settings.CONTAINERS,
-                sensor.identificator,
-                settings.CONTENT_INSTANCES
-            ),
-            headers = headers,
-            timeout = 5,
-            data = ET.tostring(root)
-        )
-
-        sensor.registered = True
-        sensor.save()
-        flash('Sensor registered!', category={ 'theme': 'success' } )
-
-    else:
-        flash('Sensor does not exist!', category={ 'theme': 'error' } )
-
-    return redirect("/sensors/#%d" % sensor_id)
-
-
 @app.route('/sensors/<int:sensor_id>/send_value/')
 def sensor_send_value(sensor_id):
     sensor = SensorInteractor.get(sensor_id)
 
-    if sensor:
-        ET.register_namespace("m2m", "http://uri.etsi.org/m2m")
+    if sensor and sensor.active:
+        gateways = GatewayInteractor.get_all_device_registered()
 
-        headers = {'Authorization': 'Basic %s' % session['post-auth'], "content-type":"application/xml"}
+        if gateways:
+            for gateway in gateways:
+                r = request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor.value)
+                if r != False:
+                    flash('Sensor value successfully sent to gateway %s!' % gateway.address, category={ 'theme' : 'success' } )
+        else:
+            flash("No gateways with registered device!", category={ 'theme': 'warning' } )
 
-        tree = ET.parse('%s/app/web/xml/sensor_value.xml' % os.getcwd())
-        root = tree.getroot()
-
-        root.set('val', str(sensor.value))
-
-        r = requests.post("%s%s/%s%s/%s%s" % (
-                session['gateway'],
-                settings.APPLICATIONS,
-                settings.DEVICE_ID,
-                settings.CONTAINERS,
-                sensor.identificator,
-                settings.CONTENT_INSTANCES
-            ),
-            headers = headers,
-            timeout = 5,
-            data = ET.tostring(root)
-        )
-
-        flash('Sensor value successfully sent!', category={ 'theme': 'success' } )
-
+        return redirect("/sensors/#%d" % sensor_id)
     else:
         flash('Sensor does not exist!', category={ 'theme': 'error' } )
 
-    return redirect("/sensors/#%d" % sensor_id)
+    return redirect("/sensors/")
 
 
 @app.route('/sensors/<int:sensor_id>/activate/')
@@ -269,6 +165,20 @@ def activate_sensor(sensor_id):
     if sensor:
         sensor.active = True
         sensor.save()
+        gateways = GatewayInteractor.get_all_device_registered()
+
+        if gateways:
+            for gateway in gateways:
+                r = request_helper.send_descriptor(gateway.address, gateway.post_authorization)
+                if r != False:
+                    r = request_helper.init_sensor(gateway.address, gateway.post_authorization, sensor.identificator)
+                    if r != False:
+                        r = request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor.value)
+                        if r != False:
+                            flash('Sensor successfully added to gateway %s!' % gateway.address, category={ 'theme': 'success' } )
+        else:
+            flash("No gateways with registered device", category={ 'theme': 'warning' } )
+
         flash("Sensor activated!", category={ 'theme': 'success' } )
     else:
         flash("Sensor does not exist!", category={ 'theme': 'error' } )
@@ -281,7 +191,19 @@ def deactivate_sensor(sensor_id):
     if sensor:
         sensor.active = False
         sensor.save()
+        gateways = GatewayInteractor.get_all_device_registered()
+
+        if gateways:
+            for gateway in gateways:
+                r = request_helper.send_descriptor(gateway.address, gateway.post_authorization)
+                if r != False:
+                    r = request_helper.delete_sensor(gateway.address, gateway.post_authorization, sensor.identificator)
+                    if r != False:
+                        flash('Sensor successfully removed from gateway %s!' % gateway.address, category={ 'theme': 'success' } )
+        else:
+            flash("No gateways with registered device", category={ 'theme': 'warning' } )
         flash("Sensor deactivated!", category={ 'theme': 'success' } )
+        return redirect("/sensors/#%d" % sensor_id)
     else:
         flash("Sensor does not exist!", category={ 'theme': 'error' } )
-    return redirect("/sensors/#%d" % sensor_id)
+    return redirect("/sensors/")

@@ -15,6 +15,11 @@ class SensorInteractor:
         return sensors
 
     @staticmethod
+    def get_all_active():
+        sensors = Sensor.query.filter_by(active=True).all()
+        return sensors
+
+    @staticmethod
     def register(sensor_id):
         # threading.Timer(5, register(sensor_id)).start()
         print "registered"

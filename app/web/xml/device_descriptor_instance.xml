@@ -1,17 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <obj xmlns="http://obix.org/ns/schema/1.1">
-    <str name="applicationID" val=""/>
+    <str name="applicationID" />
     <list name="interfaces">
         <obj>
             <str name="interfaceID" val="Basic.Srv"/>
         </obj>
         <obj>
             <str name="interfaceID" val="Identify.Srv"/>
-        </obj>
-        <obj>
-            <str name="interfaceID" val="Acceloremeter.Srv"/>
-            <str name="zbClusterID" val="0x0006"/>
-            <real name="m2mMeasuredValue" href="/m2m/applications/AndroidSensor/containers/accelerator_measurements/contentInstances/latest/content" unit="obix:units/ms2"/>
         </obj>
     </list>
 </obj>

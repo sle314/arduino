@@ -14,6 +14,11 @@ class GatewayInteractor:
         return gateways
 
     @staticmethod
+    def get_all_device_registered():
+        gateways = Gateway.query.filter_by(device_registered=True).all()
+        return gateways
+
+    @staticmethod
     def delete(gateway_id):
         gateway = Gateway.query.filter_by(id=gateway_id).first()
         if gateway:
