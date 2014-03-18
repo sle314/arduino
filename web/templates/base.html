@@ -22,13 +22,9 @@
             {% include "navigation.html" %}
         </div>
     </div>
-    <div class="container">
-        <div class="row">
-            <div class="col-xs-12">
-                {% block content %}
-                {% endblock %}
-            </div>
-        </div>
+    <div class="container-fluid">
+        {% block content %}
+        {% endblock %}
     </div>
     <script type="text/javascript">
         {% with messages = get_flashed_messages(with_categories=true) %}

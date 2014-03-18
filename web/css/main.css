@@ -1,4 +1,5 @@
 body{
+    padding-top: 80px;
     padding-bottom: 30px;
 }
 .center{
@@ -15,10 +16,6 @@ body{
     -moz-border-radius: 5px;
     border-radius: 5px;
     border: 1px solid #0ac;
-}
-.sensor-form{
-    width: 300px;
-    margin: 0 auto;
 }
 
 .sensor-form table tr td.label{
@@ -39,11 +36,24 @@ div.jGrowl div.success{
 
 .box{
     background: #e7e7e7;
-    padding: 20px;
+    padding: 20px 20px 30px 20px;
     margin: 10px 0 20px 0;
     -webkit-border-radius: 10px;
     -moz-border-radius: 10px;
     border-radius: 10px;
+    position: relative;
+}
+
+.sensors .sensor .box.active-border{
+    -webkit-box-shadow: 0px 0px 5px 0px #149c82;
+    -moz-box-shadow: 0px 0px 5px 0px #149c82;
+    box-shadow: 0px 0px 5px 0px #149c82;
+}
+
+.sensors .sensor .box.inactive-border{
+    -webkit-box-shadow: 0px 0px 5px 0px #df2e1b;
+    -moz-box-shadow: 0px 0px 5px 0px #df2e1b;
+    box-shadow: 0px 0px 5px 0px #df2e1b;
 }
 
 .center-row{
@@ -51,7 +61,7 @@ div.jGrowl div.success{
 }
 
 .center-row .box{
-    font-size: 15px;
+    font-size: 16px;
 }
 
 .center-col{
@@ -59,25 +69,29 @@ div.jGrowl div.success{
     float: none;
 }
 
-.sensors .edit-btn{
+.sensors .sensor-id{
     position: absolute;
-    top: 0px;
-    left: 0px;
+    top: 5px;
+    left: -5px;
+    font-size: 20px;
+    margin-bottom: 20px;
 }
 
-.sensors .delete-btn{
-    position: absolute;
-    top: 0px;
-    left: 40px;
-}
-
-.sensors table.info-table td{
+.sensors .sensor table.info-table td{
     padding: 3px 5px;
     width: 50%;
 }
 
-.sensors table.info-table{
+.sensors .sensor table.info-table td.sensor-identificator{
+    font-size: 18px;
+    padding-bottom: 15px;
+}
+
+.sensors .sensor table.info-table{
     width: 100%;
-    margin-top: 10px;
     margin-bottom: 20px;
+}
+
+.sensors .sensor .bottom-buttons{
+    margin-top: 20px;
 }

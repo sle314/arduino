@@ -1,16 +1,18 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div class="center">
-        {% if not session['registered'] %}
-            <form action="/register_device/">
-                <button class="btn btn-info" type="submit"><span class="glyphicon glyphicon-plus"></span>&nbsp;Register device on gateway</button>
-            </form>
-        {% else %}
-            <form action="/remove_device/">
-                <button class="btn btn-info" type="submit"><span class="glyphicon glyphicon-minus"></span>&nbsp;Remove device from gateway</button>
-            </form>
-        {% endif %}
+    <div class="row">
+        <div class="col-xs-12 center">
+            {% if not session['registered'] %}
+                <form action="/register_device/">
+                    <button class="btn btn-info" type="submit"><span class="glyphicon glyphicon-plus"></span>&nbsp;Register device on gateway</button>
+                </form>
+            {% else %}
+                <form action="/remove_device/">
+                    <button class="btn btn-info" type="submit"><span class="glyphicon glyphicon-minus"></span>&nbsp;Remove device from gateway</button>
+                </form>
+            {% endif %}
+    </div>
     </div>
 {% endblock %}
 

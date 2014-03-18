@@ -20,15 +20,22 @@ def get_sensors():
 def store_sensor():
     sensor = Sensor()
 
+    if request.form.get('is_active'):
+        sensor.active = True
+
     for (key, value) in request.form.iteritems():
         if key == 'identificator' and value == "":
             flash('You left the identificator blank, try again!', category='error')
             return redirect('/sensors/add/')
-        setattr(sensor, key, value.lower().replace(" ", "_") if key=="identificator" else value.replace(" ", "_"))
+        if key not in ['is_active', 'register']:
+            setattr(sensor, key, value.lower().replace(" ", "_") if key=="identificator" else value.replace(" ", "_"))
     try:
         sensor.save()
         flash("Sensor added!", category='success')
-        return redirect("/sensors/%d/register/" % sensor.id)
+        if (request.form.get('register')):
+            return redirect("/sensors/%d/register/" % sensor.id)
+        else:
+            return redirect("/sensors/#%d" % sensor.id)
     except IntegrityError:
         flash("Sensor with same identifier already exists!", category='error')
         return render_template("sensor/add.html", sensor=sensor)
@@ -48,20 +55,29 @@ def update_sensor(sensor_id):
 
         if old_sensor.identificator != identificator:
             identificator_changed = True
-            unregister_sensor(sensor_id)
+            reregister = False
+            if old_sensor.registered:
+                reregister = True
+                unregister_sensor(sensor_id)
+
+        if request.form.get('is_active'):
+            old_sensor.active = True
+        else:
+            old_sensor.active = False
 
         for (key, value) in request.form.iteritems():
-            setattr(old_sensor, key, value.lower().replace(" ", "_") if key=="identificator" else value.replace(" ", "_"))
+            if key not in ['is_active', 'register']:
+                setattr(old_sensor, key, value.lower().replace(" ", "_") if key=="identificator" else value.replace(" ", "_"))
 
         old_sensor.save()
 
-        if identificator_changed:
+        if identificator_changed and reregister:
             register_sensor(sensor_id)
-        else:
-            sensor_send_value(sensor_id)
+        # elif old_sensor.registered:
+        #     sensor_send_value(sensor_id)
 
         flash("Sensor edited!", category='success')
-        return redirect("/sensors/")
+        return redirect("/sensors/#%d" % old_sensor.id)
     else:
         flash("Sensor doesn't exist!", category='error')
         return redirect("/sensors/")
@@ -116,7 +132,7 @@ def delete_sensor():
     else:
         flash('Sensor does not exist!', category='error')
 
-    return redirect("/sensors/")
+    return redirect("/sensors/#%d" % sensor_id)
 
 @app.route('/sensors/<int:sensor_id>/unregister/')
 def unregister_sensor(sensor_id):
@@ -139,11 +155,11 @@ def unregister_sensor(sensor_id):
         print r.status_code
 
         if r.status_code == 204:
-            sensor.registered = 0
+            sensor.registered = False
             sensor.save()
             flash("Sensor was removed from gateway!", category='success')
         elif r.status_code == 404:
-            sensor.registered = 0
+            sensor.registered = False
             sensor.save()
             flash("Sensor was already removed!", category='warning')
         else:
@@ -151,7 +167,7 @@ def unregister_sensor(sensor_id):
     else:
         flash('Sensor does not exist!', category='error')
 
-    return redirect("/sensors/")
+    return redirect("/sensors/#%d" % sensor_id)
 
 
 @app.route('/sensors/<int:sensor_id>/register/')
@@ -199,14 +215,14 @@ def register_sensor(sensor_id):
             data = ET.tostring(root)
         )
 
-        sensor.registered = 1
+        sensor.registered = True
         sensor.save()
         flash('Sensor registered!', category='success')
 
     else:
         flash('Sensor does not exist!', category='error')
 
-    return redirect("/sensors/")
+    return redirect("/sensors/#%d" % sensor_id)
 
 
 @app.route('/sensors/<int:sensor_id>/send_value/')
@@ -241,4 +257,28 @@ def sensor_send_value(sensor_id):
     else:
         flash('Sensor does not exist!', category='error')
 
-    return redirect("/sensors/")
+    return redirect("/sensors/#%d" % sensor_id)
+
+
+@app.route('/sensors/<int:sensor_id>/activate/')
+def activate_sensor(sensor_id):
+    sensor = SensorInteractor.get(sensor_id)
+    if sensor:
+        sensor.active = True
+        sensor.save()
+        flash("Sensor activated!", category="success")
+    else:
+        flash("Sensor does not exist!", category="error")
+    return redirect("/sensors/#%d" % sensor_id)
+
+
+@app.route('/sensors/<int:sensor_id>/deactivate/')
+def deactivate_sensor(sensor_id):
+    sensor = SensorInteractor.get(sensor_id)
+    if sensor:
+        sensor.active = False
+        sensor.save()
+        flash("Sensor deactivated!", category="success")
+    else:
+        flash("Sensor does not exist!", category="error")
+    return redirect("/sensors/#%d" % sensor_id)

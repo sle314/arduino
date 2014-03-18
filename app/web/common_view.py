@@ -129,7 +129,7 @@ def remove_device():
         flash('Device is already removed!', category='warning')
         session['registered'] = False
         for sensor in SensorInteractor.get_all():
-            sensor.registered = 0
+            sensor.registered = False
             sensor.save()
     else:
         flash('Something went wrong!', category='error')
