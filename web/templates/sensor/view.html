@@ -1,37 +1,44 @@
+<div class="row center add-sensor">
+    <div class="col-xs-12">
+        <a class="btn btn-md btn-info" href="/sensors/add/"><span class="glyphicon glyphicon-plus"></span>&nbsp;Add sensor</a>
+    </div>
+</div>
 {% if sensors %}
-<div class="row center-row sensors center">
-    {% for sensor in sensors %}
-        <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 sensor center-col">
-            <div class="box {% if not sensor.active %}inactive-border{% else %}active-border{% endif %}">
-                <div class="row">
-                    <div class="sensor-id col-xs-12 left"><a name="{{ sensor.id }}"></a></div>
-                    <div class="col-xs-12">
-                        <table class="info-table">
-                            <tr>
-                                <td colspan="2" class="center sensor-identificator"><b>{{sensor.identificator}}</b></td>
-                            </tr>
-                            <tr>
-                                <td class="right">Measuring:</td>
-                                <td class="left"><b>{{sensor.measuring}}</b></td>
-                            </tr>
-                            <tr>
-                                <td class="right">Type:</td>
-                                <td class="left"><b>{{sensor.type}}</b></td>
-                            </tr>
-                            <tr>
-                                <td class="right">Pin:</td>
-                                <td class="left"><b>{{sensor.pin}}</b></td>
-                            </tr>
-                            <tr>
-                                <td class="right">Value:</td>
-                                <td class="left"><b>{{sensor.value}} {{sensor.unit}}</b></td>
-                            </tr>
-                        </table>
+    <div class="row center-row sensors center">
+        {% for sensor in sensors %}
+            <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 sensor center-col">
+                <div class="box">
+                    <div class="row">
+                        <div class="sensor-id col-xs-12 left"><a name="{{ sensor.id }}"></a></div>
+                        <div class="col-xs-12">
+                            <table class="info-table">
+                                <tr>
+                                    <td colspan="2" class="center sensor-identificator"><b>{{sensor.identificator}}</b></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2" class="center sensor-activity">{% if sensor.active %}<span class="sensor-active">active</span>{% else %}<span class="sensor-inactive">inactive</span>{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <td class="right">Measuring:</td>
+                                    <td class="left"><b>{{sensor.measuring}}</b></td>
+                                </tr>
+                                <tr>
+                                    <td class="right">Type:</td>
+                                    <td class="left"><b>{{sensor.type}}</b></td>
+                                </tr>
+                                <tr>
+                                    <td class="right">Pin:</td>
+                                    <td class="left"><b>{{sensor.pin}}</b></td>
+                                </tr>
+                                <tr>
+                                    <td class="right">Value:</td>
+                                    <td class="left"><b>{{sensor.value}} {{sensor.unit}}</b></td>
+                                </tr>
+                            </table>
+                        </div>
                     </div>
-                </div>
-                <div class="row">
-                    <div class="col-xs-offset-2 col-xs-8 col-sm-offset-2 col-sm-8">
-                        <div class="row">
+                    <div class="row center-row">
+                        <div class="middle-buttons center-col">
                             <div class="col-xs-4">
                                 {% if not sensor.active %}
                                     <a title="activate" href="/sensors/{{ sensor.id }}/activate/" class="btn btn-sm btn-success" ><span class="glyphicon glyphicon-ok"></span></a>
@@ -50,27 +57,20 @@
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="row bottom-buttons">
-                    <div class="col-xs-12">
-                        {% if session['registered'] %}
-                            {% if sensor.registered %}
-                                <a title="unregister" class="btn btn-sm btn-info" href="/sensors/{{sensor.id}}/unregister/">Unregister</a>
-                                <a title="send value" class="btn btn-sm btn-info" href="/sensors/{{sensor.id}}/send_value/">Send value</a>
-                            {% else %}
-                                <a title="register" class="btn btn-sm btn-info" href="/sensors/{{sensor.id}}/register/">Register</a>
-                            {% endif %}
-                        {% endif %}
-                    </div>
+                    {% if session['registered'] %}
+                        <div class="row bottom-buttons">
+                            <div class="col-xs-12">
+                                {% if sensor.registered %}
+                                    <a title="unregister" class="btn btn-sm btn-info" href="/sensors/{{sensor.id}}/unregister/">Unregister</a>
+                                    <a title="send value" class="btn btn-sm btn-info" href="/sensors/{{sensor.id}}/send_value/">Send value</a>
+                                {% else %}
+                                    <a title="register" class="btn btn-sm btn-info" href="/sensors/{{sensor.id}}/register/">Register</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
-        </div>
-    {% endfor %}
-</div>
-{% else %}
-    <div class="row center">
-        <div class="col-xs-12">
-            <a class="btn btn-lg btn-info" href="/sensors/add/"><span class="glyphicon glyphicon-plus"></span>&nbsp;Add sensor</a>
-        </div>
+        {% endfor %}
     </div>
 {% endif %}

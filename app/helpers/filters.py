@@ -13,3 +13,9 @@ def b64decode(ctx, value):
 def b64encode(ctx, value):
     from app.helpers.base64_helper import b64encode_quote
     return b64encode_quote(value)
+
+@app.template_filter()
+@evalcontextfilter
+def json_dumps_flask(ctx, value):
+    from flask import json
+    return json.dumps(value)

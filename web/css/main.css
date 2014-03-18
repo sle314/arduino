@@ -1,5 +1,5 @@
 body{
-    padding-top: 80px;
+    padding-top: 75px;
     padding-bottom: 30px;
 }
 .center{
@@ -18,6 +18,16 @@ body{
     border: 1px solid #0ac;
 }
 
+h3.gateway-list-title, h3.gateway-add-title{
+    padding: 0;
+    margin: 0;
+    margin-bottom: 15px;
+}
+
+.gateway, .no-gateway{
+    margin-top: 15px;
+}
+
 .sensor-form table tr td.label{
     text-align: right;
 }
@@ -34,26 +44,36 @@ div.jGrowl div.success{
     background-color: #149c82;
 }
 
+.device-id-help{
+    font-size: 10px;
+}
+
+.add-sensor{
+    margin: 5px 0 10px 0;
+}
+
 .box{
     background: #e7e7e7;
     padding: 20px 20px 30px 20px;
-    margin: 10px 0 20px 0;
+    margin: 10px 0;
     -webkit-border-radius: 10px;
     -moz-border-radius: 10px;
     border-radius: 10px;
     position: relative;
 }
 
-.sensors .sensor .box.active-border{
-    -webkit-box-shadow: 0px 0px 5px 0px #149c82;
+.sensors .sensor .box.active-sensor{
+    /*-webkit-box-shadow: 0px 0px 5px 0px #149c82;
     -moz-box-shadow: 0px 0px 5px 0px #149c82;
-    box-shadow: 0px 0px 5px 0px #149c82;
+    box-shadow: 0px 0px 5px 0px #149c82;*/
+    background: url('/static/images/bg-green-small.png') repeat;
 }
 
-.sensors .sensor .box.inactive-border{
-    -webkit-box-shadow: 0px 0px 5px 0px #df2e1b;
+.sensors .sensor .box.inactive-sensor{
+    /*-webkit-box-shadow: 0px 0px 5px 0px #df2e1b;
     -moz-box-shadow: 0px 0px 5px 0px #df2e1b;
-    box-shadow: 0px 0px 5px 0px #df2e1b;
+    box-shadow: 0px 0px 5px 0px #df2e1b;*/
+    background: url('/static/images/bg-red-small.png') repeat;
 }
 
 .center-row{
@@ -84,12 +104,28 @@ div.jGrowl div.success{
 
 .sensors .sensor table.info-table td.sensor-identificator{
     font-size: 18px;
+}
+
+.sensors .sensor table.info-table td.sensor-activity{
+    font-size: 16px;
     padding-bottom: 15px;
+}
+
+.sensors .sensor table.info-table td.sensor-activity span.sensor-active{
+    color: #149c82;
+}
+
+.sensors .sensor table.info-table td.sensor-activity span.sensor-inactive{
+    color: #df2e1b;
 }
 
 .sensors .sensor table.info-table{
     width: 100%;
     margin-bottom: 20px;
+}
+
+.sensors .sensor .middle-buttons{
+    width: 190px;
 }
 
 .sensors .sensor .bottom-buttons{

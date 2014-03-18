@@ -1,9 +1,13 @@
 var utils = {
 
-    flashMessage : function(message, theme){
+    flashMessage : function(message, options){
+        options = JSON.parse(options);
+
+        options.position = "bottom-right";
+
         $.jGrowl(
             message,
-            { theme: theme, position: "bottom-right" }
+            options
         );
     },
 

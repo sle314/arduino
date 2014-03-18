@@ -12,10 +12,11 @@ locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
-app = Flask("app",
-            template_folder='%s/%s' % (os.getcwd(), settings.TEMPLATE_FOLDER),
-            static_folder='%s/%s' % (os.getcwd(), settings.STATIC_FOLDER),
-            static_url_path='/static'
+app = Flask(
+		"app",
+        template_folder='%s/%s' % (os.getcwd(), settings.TEMPLATE_FOLDER),
+        static_folder='%s/%s' % (os.getcwd(), settings.STATIC_FOLDER),
+        static_url_path='/static'
     )
 
 app.secret_key = 'A0sZr98j/3yX R~XHH!jmN]LWX/,?RT'
@@ -33,3 +34,4 @@ app.logger.setLevel(logging.INFO)
 
 from common_view import *
 from sensor_view import *
+from gateway_view import *

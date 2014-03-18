@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-xs-12 col-sm-offset-1 col-sm-10">
+            <div class="box">
+                <div class="row">
+                    <div class="col-xs-12">
+                        <h3 class="center gateway-list-title">Gateway list</h3>
+                        <div class="row gateway-list center">
+                            {% if gateways %}
+                                {% for gateway in gateways %}
+                                    <div class="col-xs-12 col-sm-4 center-col gateway">
+                                        <div class="row center">
+                                            <div class="col-xs-12 center-col">
+                                                {{ gateway.address }}
+                                            </div>
+                                            <div class="col-xs-12">
+                                                <a href="/gateway/{{ gateway.id }}/edit/" class="btn btn-xs btn-info"><span class="glyphicon glyphicon-pencil"></span></a>
+                                                <form class="center-col" action="/gateway/delete/" method="POST">
+                                                    <input type="hidden" value="{{ gateway.id }}" name="gateway_id"/>
+                                                    <button class="btn btn-xs btn-danger" type="submit"><span class="glyphicon glyphicon-trash"></span></button>
+                                                </form>
+                                                {% if gateway.device_registered %}
+                                                    <a href="/gateway/{{ gateway.id }}/unregister_device/" class="btn btn-xs btn-info"><span class="glyphicon glyphicon-minus"></span>&nbsp;Unregister device</a>
+                                                {% else %}
+                                                    <a href="/gateway/{{ gateway.id }}/register_device/" class="btn btn-xs btn-info"><span class="glyphicon glyphicon-plus"></span>&nbsp;Register device</a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="no-gateway">No gateways added.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            {% include "gateway/add.html" %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block includes %}
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $("#navbar-collapse li#set-gateway").addClass("active")
+        })
+    </script>
+{% endblock %}
