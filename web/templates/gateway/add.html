@@ -1,7 +1,7 @@
 <div class="box">
     <div class="row">
         <h3 class="center gateway-add-title">{% if not gateway %}Add{% else %}Edit{% endif %} gateway</h3>
-        <form class="form" action="/gateway/{% if gateway %}{{gateway.id}}/{% endif %}" method="POST">
+        <form class="form" action="/gateway/{% if gateway %}{{gateway.id}}/{% endif %}" method="POST" id="gateway-form">
             {% if not gateway %}
                 <div class="col-xs-12 form-group">
                     <label class="control-label" for="device">Device:</label>
@@ -9,10 +9,14 @@
                     <div class="device-id-help">* change this in the local settings file</div>
                 </div>
                 <div class="col-xs-12 form-group">
-                    <label class="control-label" for="address">Gateway:</label>
+                    <label class="control-label" for="address">GW address:</label>
                     <input class="form-control" type="text" name="address" value="{% if gateway %}{{ gateway.address }}{% else %}{{ settings.GATEWAY }}{% endif %}" />
                 </div>
             {% endif %}
+            <div class="col-xs-12 form-group">
+                <label class="control-label" for="name">Name:</label>
+                <input class="form-control" type="text" name="name" value="{% if gateway %}{{ gateway.name }}{% else %}{{ settings.NAME }}{% endif %}" />
+            </div>
             <div class="col-xs-12 form-group">
                 <label class="control-label" for="authorization">Authorization:</label>
                 <input class="form-control" type="text" name="authorization" value="{% if gateway %}{{ gateway.authorization | b64decode }}{% else %}{{ settings.AUTH }}{% endif %}" />

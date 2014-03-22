@@ -11,7 +11,7 @@ var utils = {
         );
     },
 
-    validateForm : function(form_id){
+    validateForm : function(form_id, ignoreList){
     	var form = "form";
     	if (form_id){
     		if (form_id.indexOf("#") == -1)
@@ -23,12 +23,16 @@ var utils = {
     	$(form).on('submit', function(event){
             var fail = false;
             $("input", event.currentTarget).each(function(){
-                if ($(this).val() == ""){
-                    $(this).parents(".form-group").addClass("has-error");
-                    fail = true;
-                }
-                else{
-                    $(this).parents(".form-group").removeClass("has-error");
+                if(ignoreList){
+                    if ($.inArray($(this).attr('name'), ignoreList) == -1){
+                        if ($(this).val() == ""){
+                            $(this).parents(".form-group").addClass("has-error");
+                            fail = true;
+                        }
+                        else{
+                            $(this).parents(".form-group").removeClass("has-error");
+                        }
+                    }
                 }
             });
             if (fail){

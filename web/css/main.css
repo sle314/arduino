@@ -25,7 +25,7 @@ h3.gateway-list-title, h3.gateway-add-title{
 }
 
 .gateway, .no-gateway{
-    margin-top: 15px;
+    margin-top: 20px;
 }
 
 .sensor-form table tr td.label{
@@ -55,7 +55,7 @@ div.jGrowl div.success{
 .box{
     background: #e7e7e7;
     padding: 20px 20px 30px 20px;
-    margin: 10px 0;
+    margin: 10px 0 20px 0;
     -webkit-border-radius: 10px;
     -moz-border-radius: 10px;
     border-radius: 10px;

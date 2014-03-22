@@ -142,17 +142,21 @@ def sensor_send_value(sensor_id):
     sensor = SensorInteractor.get(sensor_id)
 
     if sensor and sensor.active:
-        gateways = GatewayInteractor.get_all_device_registered()
+        if ( not abs( float(sensor.value) - float(sensor.value) ) < sensor.threshold):
+            gateways = GatewayInteractor.get_all_device_registered()
 
-        if gateways:
-            for gateway in gateways:
-                r = request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor.value)
-                if r != False:
-                    flash('Sensor value successfully sent to gateway %s!' % gateway.address, category={ 'theme' : 'success' } )
+            if gateways:
+                for gateway in gateways:
+
+                    r = request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor.value)
+                    if r != False:
+                        flash('Sensor value successfully sent to gateway %s!' % gateway.address, category={ 'theme' : 'success' } )
+            else:
+                flash("No gateways with registered device!", category={ 'theme': 'warning' } )
+
+            return redirect("/sensors/#%d" % sensor_id)
         else:
-            flash("No gateways with registered device!", category={ 'theme': 'warning' } )
-
-        return redirect("/sensors/#%d" % sensor_id)
+            flash("Insignificant change of sensor value for the set threshold!", category={ 'theme': 'warning' } )
     else:
         flash('Sensor does not exist!', category={ 'theme': 'error' } )
 

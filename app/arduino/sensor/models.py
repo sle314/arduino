@@ -11,7 +11,7 @@ class Sensor(db.Model):
     active = db.Column(db.Boolean, default=False)
     measuring = db.Column(db.String(80))
     pin = db.Column(db.Integer, default=0)
-    threshold = db.Column(db.Float, default=1)
+    threshold = db.Column(db.Float, default=1.0)
 
     def __str__(self):
         return "%s %s %s %s" % (self.id, self.type, self.value, self.unit)

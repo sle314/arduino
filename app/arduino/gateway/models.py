@@ -9,6 +9,7 @@ class Gateway(db.Model):
     post_authorization = db.Column(db.String(200))
     active = db.Column(db.Boolean, default=False)
     device_registered = db.Column(db.Boolean, default=False)
+    name = db.Column(db.String(50))
 
     def __str__(self):
         return "%s %s %s" % (self.id, self.authorization, self.address)

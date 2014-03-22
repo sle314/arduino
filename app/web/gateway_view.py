@@ -31,6 +31,7 @@ def gateway():
 
             if root:
                 gateway.post_authorization = b64encode_quote(root[4][0][1][0][1].text)
+                gateway.name = request.form.get("name") if request.form.get("name") else root[4][0][1][0][1].text.split("//")[1].split(".")[0].lower()
                 gateway.address = address
                 gateway.authorization = authorization
                 gateway.active = True
@@ -145,9 +146,10 @@ def edit_gateway(gateway_id):
     if gateway:
         from app.helpers.base64_helper import b64encode_quote
         authorization = b64encode_quote(request.form.get("authorization"))
+        name = request.form.get("name")
 
-        if authorization == gateway.authorization:
-            flash("Authorization hasn't been changed!", category={ 'theme' : 'warning'} )
+        if authorization == gateway.authorization and name == gateway.name:
+            flash("You didn't change anything!", category={ 'theme' : 'warning'} )
 
         r = check_gateway(gateway.address, authorization)
 
@@ -158,6 +160,7 @@ def edit_gateway(gateway_id):
                 if root:
                     gateway.post_authorization = b64encode_quote(root[4][0][1][0][1].text)
                     gateway.active = True
+                    gateway.name = name if name else root[4][0][1][0][1].text.split("//")[1].split(".")[0].lower()
 
                     gateway.save()
 

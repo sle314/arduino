@@ -243,6 +243,7 @@ def send_sensor_value(address, post_authorization, sensor_identificator, value):
         flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
         return False
 
+
 def delete_sensor(address, post_authorization, sensor_identificator):
     headers = {'Authorization': 'Basic %s' % post_authorization}
 
