@@ -28,6 +28,9 @@ h3.gateway-list-title, h3.gateway-add-title{
     margin-top: 20px;
 }
 
+#gateway-address{
+    font-size: 0.7em;
+}
 .sensor-form table tr td.label{
     text-align: right;
 }
@@ -44,7 +47,7 @@ div.jGrowl div.success{
     background-color: #149c82;
 }
 
-.device-id-help{
+.help-text{
     font-size: 10px;
 }
 

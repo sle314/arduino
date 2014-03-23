@@ -158,7 +158,7 @@ def send_descriptor(address, post_authorization):
     sensors = SensorInteractor.get_all_active()
     if sensors:
 
-        measuring = []
+        type = []
         n = 1
 
         for sensor in sensors:
@@ -167,12 +167,12 @@ def send_descriptor(address, post_authorization):
             real = ET.SubElement(obj, 'real')
             str.set('name', 'interfaceID')
 
-            sensor_measuring = sensor.measuring
-            if sensor_measuring in measuring:
-                sensor_measuring = '%s%02d' % ( sensor.measuring, n)
+            sensor_type = sensor.type
+            if sensor_type in type:
+                sensor_type = '%s%02d' % ( sensor.type, n)
                 n = n + 1
-            str.set('val', '%s.Srv' % sensor_measuring)
-            measuring.append(sensor_measuring)
+            str.set('val', '%s.Srv' % sensor_type)
+            type.append(sensor_type)
 
             real.set('name', 'm2mMeasuredValue')
             real.set('unit', 'obix:units/%s' % sensor.unit)

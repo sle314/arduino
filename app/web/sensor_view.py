@@ -27,14 +27,20 @@ def store_sensor():
         if key == 'identificator' and value == "":
             flash('You left the identificator blank, try again!', category={ 'theme': 'error' } )
             return redirect('/sensors/add/')
-        if key not in ['is_active', 'register']:
+        if key not in ['is_active', 'register', 'write', 'toggle']:
             setattr(sensor, key, value.lower().replace(" ", "_") if key=="identificator" else value.replace(" ", "_"))
     try:
-        if request.form.get('is_active'):
-            sensor.active = True
-            sensor.save()
-            activate_sensor(sensor.id)
+        if request.form.get('write'):
+            sensor.write=True
+
+        if request.form.get('toggle'):
+            sensor.toggle = True
+
         sensor.save()
+
+        if request.form.get('is_active'):
+            activate_sensor(sensor.id)
+
         flash("Sensor added!", category={ 'theme': 'success' } )
         if (request.form.get('register')):
             return redirect("/sensors/%d/register/" % sensor.id)
@@ -64,16 +70,20 @@ def update_sensor(sensor_id):
                     request_helper.delete_sensor(gateway.address, gateway.post_authorization, old_sensor.identificator)
 
         for (key, value) in request.form.iteritems():
-            if key not in ['is_active', 'register']:
+            if key not in ['is_active', 'register', 'write', 'toggle']:
                 setattr(old_sensor, key, value.lower().replace(" ", "_") if key=="identificator" else value.replace(" ", "_"))
 
+        if bool(request.form.get('write')) != old_sensor.write:
+            old_sensor.write = not old_sensor.write
+
+        if bool(request.form.get('toggle')) != old_sensor.toggle:
+            old_sensor.toggle = not old_sensor.toggle
+
+        old_sensor.save()
+
         if request.form.get('is_active'):
-            old_sensor.active = True
-            old_sensor.save()
             activate_sensor(sensor_id)
         else:
-            old_sensor.active = False
-            old_sensor.save()
             deactivate_sensor(sensor_id)
 
         flash("Sensor edited!", category={ 'theme': 'success' } )
@@ -156,7 +166,7 @@ def sensor_send_value(sensor_id):
 
             return redirect("/sensors/#%d" % sensor_id)
         else:
-            flash("Insignificant change of sensor value for the set threshold!", category={ 'theme': 'warning' } )
+            flash("Insignificant change of sensor value for the set threshold! Value wasn't sent!", category={ 'theme': 'warning' } )
     else:
         flash('Sensor does not exist!', category={ 'theme': 'error' } )
 

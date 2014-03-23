@@ -7,10 +7,10 @@
                 <div class="row">
                     <form class="form" id="sensor-form" action="/sensors/{% if sensor and sensor.id %}{{sensor.id}}/{% endif %}" method="POST">
                         <div class="col-xs-7 form-group">
-                            <label class="control-label" for="type">Digital/analog:</label>
-                            <select class="form-control" name="type">
-                                <option value="digital" {% if sensor and sensor.type=='digital'%}selected="selected"{% endif %}>Digital</option>
-                                <option value="analog" {% if sensor and sensor.type=='analog'%}selected="selected"{% endif %}>Analog</option>
+                            <label class="control-label" for="ad">Digital/analog:</label>
+                            <select class="form-control" name="ad">
+                                <option value="D">Digital</option>
+                                <option value="A">Analog</option>
                             </select>
                         </div>
                         <div class="col-xs-5 form-group">
@@ -23,12 +23,16 @@
                             <input class="form-control" name="identificator" type="text" value="{% if sensor %}{{sensor.identificator}}{% endif %}"/>
                         </div>
                         <div class="col-xs-12 form-group">
-                            <label class="control-label" for="measuring">Type:</label>
-                            <input class="form-control" name="measuring" type="text" value="{% if sensor %}{{sensor.measuring}}{% endif %}"/>
+                            <label class="control-label" for="type">Type:</label>
+                            <input class="form-control" name="type" type="text" value="{% if sensor %}{{sensor.type}}{% endif %}"/>
                         </div>
                         <div class="col-xs-12 form-group">
-                            <label class="control-label" for="value">Value:</label>
-                            <input class="form-control" name="value" type="text" value="{% if sensor %}{{sensor.value}}{% endif %}"/>
+                            <label class="control-label" for="min_value">Minimum value:</label>
+                            <input class="form-control" name="min_value" type="text" value="{% if sensor %}{{sensor.min_value}}{% endif %}"/>
+                        </div>
+                        <div class="col-xs-12 form-group">
+                            <label class="control-label" for="max_value">Maximum value:</label>
+                            <input class="form-control" name="max_value" type="text" value="{% if sensor %}{{sensor.max_value}}{% endif %}"/>
                         </div>
                         <div class="col-xs-12 form-group">
                             <label class="control-label" for="unit">Unit:</label>
@@ -38,12 +42,18 @@
                             <label class="control-label" for="threshold">Threshold:</label>
                             <input class="form-control" name="threshold" type="text" value="{% if sensor %}{{sensor.threshold}}{% else %}1.0{% endif %}"/>
                         </div>
-                        <div class="col-xs-12 form-group">
-                            <div class="checkbox">
-                                <label>
-                                    active <input type="checkbox" name="is_active" {% if sensor and sensor.active %}checked{% endif %} />
+                        <div class="col-xs-12 form-group center">
+                            <p>
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" name="is_active" {% if sensor and sensor.active %}checked{% endif %} /> active
                                 </label>
-                            </div>
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" name="toggle" {% if sensor and sensor.toggle %}checked{% endif %} /> toggleable
+                                </label>
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" name="write" {% if sensor and sensor.write %}checked{% endif %} /> writeable
+                                </label>
+                            </p>
                         </div>
                         <div class="col-xs-12 center">
                             <button class="btn btn-info" type="submit">
@@ -68,25 +78,25 @@
         $(document).ready(function(){
             $("#navbar-collapse li#add-sensor").addClass("active")
 
-            {% if sensor and sensor.type %}$("select[name='type']").val("{{ sensor.type }}"){% endif %}
+            {% if sensor and sensor.pin %}$("select[name='ad']").val("{{ sensor.pin[0] }}"){% endif %}
 
-            $("select[name='type']")
+            $("select[name='ad']")
             .on('change',
                 function(event){
                     $("select[name='pin']").empty();
-                    if ($(event.currentTarget).val() == "digital"){
-                        for (var i=0; i<13; i++){
+                    if ($(event.currentTarget).val() == "D"){
+                        for (var i=0; i<19; i++){
                             $("<option/>", {
-                                value: i,
+                                value: "D" + i,
                             })
                             .text(i)
                             .appendTo("select[name='pin']");
                         }
                     }
                     else{
-                        for (var i=0; i<3; i++){
+                        for (var i=0; i<11; i++){
                             $("<option/>", {
-                                value: i,
+                                value: "A" + i,
                             })
                             .text(i)
                             .appendTo("select[name='pin']");
@@ -95,15 +105,15 @@
                 }
             );
 
-            $("input[name='threshold']").on('keyup', function(event){
-                $(event.currentTarget).val($(event.currentTarget).val().replace(',', '.'));
+            $("input[name='threshold'], input[name='min_value'], input[name='max_value']").on('keyup', function(event){
+                $(event.currentTarget).val($(event.currentTarget).val().replace(',', '.').replace(/[^0-9\.]/, ''));
             });
 
-            $("select[name='type']").trigger('change');
+            $("select[name='ad']").trigger('change');
 
             {% if sensor and sensor.pin %}$("select[name='pin']").val("{{ sensor.pin }}"){% endif %}
 
-            utils.validateForm('sensor-form');
+            utils.validateForm('sensor-form', []);
 
         });
     </script>

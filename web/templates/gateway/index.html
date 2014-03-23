@@ -13,7 +13,8 @@
                                     <div class="col-xs-12 gateway">
                                         <div class="row center">
                                             <div class="col-xs-12">
-                                                <b>{{ gateway.name }}</b>
+                                                <b>{{ gateway.name }}</b><br/>
+                                                <span id="gateway-address">({{ gateway.address }})</span>
                                             </div>
                                             <div class="col-xs-12">
                                                 <a href="/gateway/{{ gateway.id }}/edit/" class="btn btn-xs btn-info"><span class="glyphicon glyphicon-pencil"></span></a>

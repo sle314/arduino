@@ -31,7 +31,7 @@ def gateway():
 
             if root:
                 gateway.post_authorization = b64encode_quote(root[4][0][1][0][1].text)
-                gateway.name = request.form.get("name") if request.form.get("name") else root[4][0][1][0][1].text.split("//")[1].split(".")[0].lower()
+                gateway.name = request.form.get("name") if request.form.get("name") else root[4][0][1][0][1].text.split("//")[1].split(".")[0]
                 gateway.address = address
                 gateway.authorization = authorization
                 gateway.active = True
