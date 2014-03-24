@@ -8,8 +8,9 @@ from requests.exceptions import ConnectionError, Timeout
 from app.arduino.sensor import SensorInteractor
 from app.arduino.gateway import Gateway, GatewayInteractor
 from app.helpers.request_helper import check_gateway, check_device, init_device, init_descriptor, send_descriptor, init_sensor, send_sensor_value, delete_device
-import xml.etree.ElementTree as ET
+
 import requests
+import re
 
 @app.route('/gateway/', methods=['POST'])
 def gateway():
@@ -22,16 +23,21 @@ def gateway():
     from app.helpers.base64_helper import b64encode_quote
     authorization = b64encode_quote(request.form.get("authorization"))
 
+    print address, authorization
+
     r = check_gateway(address, authorization)
 
     if r != False:
         if r.status_code == 200:
             session['error'] = False
-            root = ET.fromstring(r.text)
 
-            if root:
-                gateway.post_authorization = b64encode_quote(root[4][0][1][0][1].text)
-                gateway.name = request.form.get("name") if request.form.get("name") else root[4][0][1][0][1].text.split("//")[1].split(".")[0]
+            if r.text:
+                print r.text
+                p = re.compile('<m2m:holderRef>(.*?)</m2m:holderRef>')
+                m = p.match(r.text)
+                uri = m.group(1)
+                gateway.post_authorization = b64encode_quote(uri)
+                gateway.name = request.form.get("name") if request.form.get("name") else uri.split("//")[1].split(".")[0]
                 gateway.address = address
                 gateway.authorization = authorization
                 gateway.active = True

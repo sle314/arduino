@@ -4,3 +4,4 @@ Flask-SQLAlchemy==1.0
 SQLAlchemy==0.9.3
 ipython==1.2.1
 pyserial==2.7
+requests==2.2.1

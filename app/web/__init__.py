@@ -8,7 +8,7 @@ from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 from app.settings import local as settings
 
-locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
+# locale.setlocale(locale.LC_ALL, 'en_EN.utf8')
 reload(sys)
 sys.setdefaultencoding('utf-8')
 

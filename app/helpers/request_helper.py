@@ -41,11 +41,10 @@ def check_gateway(address, authorization):
             headers = headers,
             timeout = 5
         )
-
         return r
 
     except ConnectionError:
-        flash("Cannot connect to gateway %s!" % gateway.address, category={ 'theme': 'error' } )
+        flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
         return False
 
     except Timeout:
