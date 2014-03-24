@@ -23,8 +23,6 @@ def gateway():
     from app.helpers.base64_helper import b64encode_quote
     authorization = b64encode_quote(request.form.get("authorization"))
 
-    print address, authorization
-
     r = check_gateway(address, authorization)
 
     if r != False:

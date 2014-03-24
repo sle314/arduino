@@ -23,7 +23,7 @@ def check_device(address, authorization):
         return r
 
     except ConnectionError:
-        flash("Cannot connect to gateway %s!" % gateway.address, category={ 'theme': 'error' } )
+        flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
         return False
 
     except Timeout:
@@ -78,7 +78,7 @@ def init_device(address, post_authorization):
 
         return r
     except ConnectionError:
-        flash("Cannot connect to gateway %s!" % gateway.address, category={ 'theme': 'error' } )
+        flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
         return False
 
     except Timeout:
@@ -112,7 +112,7 @@ def init_descriptor(address, post_authorization):
         return r
 
     except ConnectionError:
-        flash("Cannot connect to gateway %s!" % gateway.address, category={ 'theme': 'error' } )
+        flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
         return False
 
     except Timeout:
@@ -147,7 +147,7 @@ def init_sensor(address, post_authorization, sensor_identificator):
         return r
 
     except ConnectionError:
-        flash("Cannot connect to gateway %s!" % gateway.address, category={ 'theme': 'error' } )
+        flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
         return False
 
     except Timeout:
@@ -219,7 +219,25 @@ def send_descriptor(address, post_authorization):
         return r
 
     except ConnectionError:
-        flash("Cannot connect to gateway %s!" % gateway.address, category={ 'theme': 'error' } )
+        flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
+        return False
+
+    except Timeout:
+        flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
+        return False
+
+def get_sensor_value(pin):
+    try:
+        r = requests.get("http://localhost/data/get/%s" % pin,
+            timeout = 10
+        )
+
+        from flask import json
+
+        return json.loads(r.text)['value']
+
+    except ConnectionError:
+        flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
         return False
 
     except Timeout:
@@ -251,7 +269,7 @@ def send_sensor_value(address, post_authorization, sensor_identificator, value):
         return r
 
     except ConnectionError:
-        flash("Cannot connect to gateway %s!" % gateway.address, category={ 'theme': 'error' } )
+        flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
         return False
 
     except Timeout:
@@ -277,7 +295,7 @@ def delete_sensor(address, post_authorization, sensor_identificator):
         return r
 
     except ConnectionError:
-        flash("Cannot connect to gateway %s!" % gateway.address, category={ 'theme': 'error' } )
+        flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
         return False
 
     except Timeout:
@@ -302,7 +320,7 @@ def delete_device(address, post_authorization):
         return r
 
     except ConnectionError:
-        flash("Cannot connect to gateway %s!" % gateway.address, category={ 'theme': 'error' } )
+        flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
         return False
 
     except Timeout:

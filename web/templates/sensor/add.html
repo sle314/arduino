@@ -85,7 +85,7 @@
                 function(event){
                     $("select[name='pin']").empty();
                     if ($(event.currentTarget).val() == "D"){
-                        for (var i=0; i<19; i++){
+                        for (var i=2; i<14; i++){
                             $("<option/>", {
                                 value: "D" + i,
                             })
@@ -94,7 +94,7 @@
                         }
                     }
                     else{
-                        for (var i=0; i<11; i++){
+                        for (var i=0; i<6; i++){
                             $("<option/>", {
                                 value: "A" + i,
                             })
@@ -106,7 +106,7 @@
             );
 
             $("input[name='threshold'], input[name='min_value'], input[name='max_value']").on('keyup', function(event){
-                $(event.currentTarget).val($(event.currentTarget).val().replace(',', '.').replace(/[^0-9\.]/, ''));
+                $(event.currentTarget).val($(event.currentTarget).val().replace(',', '.').replace(/[^0-9\.-]/, ''));
             });
 
             $("select[name='ad']").trigger('change');

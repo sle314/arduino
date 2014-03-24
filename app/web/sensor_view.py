@@ -152,7 +152,12 @@ def sensor_send_value(sensor_id):
     sensor = SensorInteractor.get(sensor_id)
 
     if sensor and sensor.active:
-        if ( not abs( float(sensor.value) - float(sensor.value) ) < sensor.threshold):
+        val = request_helper.get_sensor_value(sensor.pin)
+        old_value = float(sensor.value)
+
+        value = sensor.min_value + ((int(val)/1024.0)*(sensor.max_value-sensor.min_value))
+        SensorInteractor.set_value(sensor_id, "%0.1f" % value)
+        if ( not abs( old_value - float(sensor.value) ) < sensor.threshold):
             gateways = GatewayInteractor.get_all_device_registered()
 
             if gateways:

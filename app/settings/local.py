@@ -1,7 +1,7 @@
 TEMPLATE_FOLDER = "web/templates"
 STATIC_FOLDER = "web"
 
-DEBUG = True
+DEBUG = False
 
 GATEWAY = "http://161.53.19.64:8080"
 NAME = "cyh-00606e334601"

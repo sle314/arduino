@@ -37,3 +37,9 @@ class SensorInteractor:
     def get_by_identificator(identificator):
         sensor = Sensor.query.filter_by(identificator=identificator).first()
         return sensor
+
+    @staticmethod
+    def set_value(sensor_id, value):
+        sensor = Sensor.query.filter_by(id=sensor_id).first()
+        sensor.value = str(value)
+        sensor.save()
