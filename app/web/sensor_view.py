@@ -2,7 +2,7 @@
 from . import app
 from flask import render_template, request, session, redirect, flash
 from sqlalchemy.exc import IntegrityError
-import xml.etree.ElementTree as ET
+
 import os
 from app.settings import local as settings
 import requests

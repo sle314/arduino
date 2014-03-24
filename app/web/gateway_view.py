@@ -32,12 +32,9 @@ def gateway():
             session['error'] = False
 
             if r.text:
-                print r.text
-                p = re.compile('<m2m:holderRef>(.*?)</m2m:holderRef>')
-                m = p.match(r.text)
-                uri = m.group(1)
-                gateway.post_authorization = b64encode_quote(uri)
-                gateway.name = request.form.get("name") if request.form.get("name") else uri.split("//")[1].split(".")[0]
+                m = re.findall(r'<m2m:holderRef>(.*?)</m2m:holderRef>', r.text)
+                gateway.post_authorization = b64encode_quote(m[1])
+                gateway.name = request.form.get("name") if request.form.get("name") else m[1].split("//")[1].split(".")[0]
                 gateway.address = address
                 gateway.authorization = authorization
                 gateway.active = True
@@ -161,12 +158,12 @@ def edit_gateway(gateway_id):
 
         if r != False:
             if r.status_code == 200:
-                root = ET.fromstring(r.text)
 
-                if root:
-                    gateway.post_authorization = b64encode_quote(root[4][0][1][0][1].text)
+                if r.text:
+                    m = re.findall(r'<m2m:holderRef>(.*?)</m2m:holderRef>', r.text)
+                    gateway.post_authorization = b64encode_quote(m[1])
                     gateway.active = True
-                    gateway.name = name if name else root[4][0][1][0][1].text.split("//")[1].split(".")[0].lower()
+                    gateway.name = name if name else m[1].split("//")[1].split(".")[0].lower()
 
                     gateway.save()
 

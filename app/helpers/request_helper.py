@@ -1,9 +1,10 @@
 from app.settings import local as settings
 from requests.exceptions import ConnectionError, Timeout
 import requests
-import xml.etree.ElementTree as ET
+
 from flask import flash
 import os
+import re
 
 from app.arduino.sensor import SensorInteractor
 
@@ -53,14 +54,15 @@ def check_gateway(address, authorization):
 
 
 def init_device(address, post_authorization):
-    ET.register_namespace("m2m", "http://uri.etsi.org/m2m")
-    tree = ET.parse('%s/app/web/xml/device.xml' % os.getcwd())
 
-    root = tree.getroot()
-    root.set('appId', settings.DEVICE_ID)
-
-    search_string = ET.SubElement(root, 'm2m:searchString')
-    search_string.text = 'ETSI.ObjectTechnology/ACTILITY.%s' % settings.DEVICE_ID
+    xml = '<?xml version="1.0" encoding="UTF-8"?>\
+<m2m:application appId="%(app_id)s" xmlns:m2m="http://uri.etsi.org/m2m">\
+    <m2m:accessRightID>/m2m/accessRights/Locadmin_AR/</m2m:accessRightID>\
+    <m2m:searchStrings>\
+        <m2m:searchString>ETSI.ObjectType/ETSI.AN_NODE</m2m:searchString>\
+        <m2m:searchString>ETSI.ObjectTechnology/ACTILITY.%(app_id)s</m2m:searchString>\
+    </m2m:searchStrings>\
+</m2m:application>' % { "app_id" : settings.DEVICE_ID }
 
     headers = {'Authorization': 'Basic %s' % post_authorization, "content-type":"application/xml"}
 
@@ -71,7 +73,7 @@ def init_device(address, post_authorization):
             ),
             headers = headers,
             timeout = 5,
-            data = ET.tostring(root)
+            data = xml
         )
 
         return r
@@ -85,11 +87,16 @@ def init_device(address, post_authorization):
 
 
 def init_descriptor(address, post_authorization):
-    ET.register_namespace("m2m", "http://uri.etsi.org/m2m")
     headers = {'Authorization': 'Basic %s' % post_authorization, "content-type":"application/xml"}
 
-    tree = ET.parse('%s/app/web/xml/device_descriptor.xml' % os.getcwd())
-
+    xml = '<?xml version="1.0" encoding="UTF-8"?>\
+<m2m:container m2m:id="DESCRIPTOR" xmlns:m2m="http://uri.etsi.org/m2m">\
+   <m2m:accessRightID>/m2m/accessRights/Locadmin_AR</m2m:accessRightID>\
+   <m2m:searchStrings>\
+                   <m2m:searchString>ETSI.ObjectSemantic/OASIS.OBIX_1_1</m2m:searchString>\
+   </m2m:searchStrings>\
+   <m2m:maxNrOfInstances>1</m2m:maxNrOfInstances>\
+</m2m:container>'
     try:
         r = requests.post("%s%s/%s%s" % (
                 address,
@@ -99,7 +106,7 @@ def init_descriptor(address, post_authorization):
             ),
             headers = headers,
             timeout = 5,
-            data = ET.tostring(tree.getroot())
+            data = xml
         )
 
         return r
@@ -113,14 +120,17 @@ def init_descriptor(address, post_authorization):
         return False
 
 def init_sensor(address, post_authorization, sensor_identificator):
-    ET.register_namespace("m2m", "http://uri.etsi.org/m2m")
-    tree = ET.parse('%s/app/web/xml/sensor.xml' % os.getcwd())
-    root = tree.getroot()
-
-    root.set('m2m:id', sensor_identificator)
-    root[2].text = str(settings.MAX_NR_VALUES)
 
     headers = {'Authorization': 'Basic %s' % post_authorization, "content-type":"application/xml"}
+
+    xml = '<?xml version="1.0" encoding="UTF-8"?>\
+<m2m:container m2m:id="%(sensor_id)s" xmlns:m2m="http://uri.etsi.org/m2m">\
+    <m2m:accessRightID>/m2m/accessRights/Locadmin_AR</m2m:accessRightID>\
+    <m2m:searchStrings>\
+        <m2m:searchString>ETSI.ObjectSemantic/OASIS.OBIX_1_1</m2m:searchString>\
+    </m2m:searchStrings>\
+    <m2m:maxNrOfInstances>%(max_nr_vals)d</m2m:maxNrOfInstances>\
+</m2m:container>' % { "sensor_id" : sensor_identificator, "max_nr_vals" : settings.MAX_NR_VALUES}
 
     try:
         r = requests.post("%s%s/%s%s" % (
@@ -131,7 +141,7 @@ def init_sensor(address, post_authorization, sensor_identificator):
             ),
             headers = headers,
             timeout = 5,
-            data = ET.tostring(root)
+            data = xml
         )
 
         return r
@@ -146,41 +156,51 @@ def init_sensor(address, post_authorization, sensor_identificator):
 
 def send_descriptor(address, post_authorization):
 
-    ET.register_namespace("", "http://obix.org/ns/schema/1.1")
     headers = {'Authorization': 'Basic %s' % post_authorization, "content-type":"application/xml"}
 
-    tree = ET.parse('%s/app/web/xml/device_descriptor_instance.xml' % os.getcwd())
-
-    root = tree.getroot()
-    root[0].set('val', settings.DEVICE_ID)
+    xml = '<?xml version="1.0" encoding="UTF-8"?>\
+<obj xmlns="http://obix.org/ns/schema/1.1">\
+    <str name="applicationID" val="%(app_id)s"/>\
+    <list name="interfaces">\
+        <obj>\
+            <str name="interfaceID" val="Basic.Srv"/>\
+        </obj>\
+        <obj>\
+            <str name="interfaceID" val="Identify.Srv"/>\
+        </obj>' % { "app_id" : settings.DEVICE_ID }
 
     sensors = SensorInteractor.get_all_active()
+
     if sensors:
 
         type = []
         n = 1
+        sub_xml = ''
 
         for sensor in sensors:
-            obj = ET.SubElement(root[1], 'obj')
-            str = ET.SubElement(obj, 'str')
-            real = ET.SubElement(obj, 'real')
-            str.set('name', 'interfaceID')
 
             sensor_type = sensor.type
             if sensor_type in type:
                 sensor_type = '%s%02d' % ( sensor.type, n)
                 n = n + 1
-            str.set('val', '%s.Srv' % sensor_type)
-            type.append(sensor_type)
+            sub_xml = sub_xml + '<obj>\
+            <str name="interfaceID" val="%(sensor_type)s.Srv" />\
+            <real href="%(sensor_href)s" name="m2mMeasuredValue" unit="obix:units/%(sensor_unit)s" />\
+        </obj>' % { "sensor_type" : sensor_type,
+                    "sensor_unit" : sensor.unit,
+                    "sensor_href" : '%s/%s%s/%s%s%s' % (settings.APPLICATIONS, settings.DEVICE_ID, settings.CONTAINERS, sensor.identificator, settings.CONTENT_INSTANCES, settings.LATEST_CONTENT)
+                }
 
-            real.set('name', 'm2mMeasuredValue')
-            real.set('unit', 'obix:units/%s' % sensor.unit)
-            real.set('href', '%s/%s%s/%s%s%s' % (settings.APPLICATIONS, settings.DEVICE_ID, settings.CONTAINERS, sensor.identificator, settings.CONTENT_INSTANCES, settings.LATEST_CONTENT))
+            type.append(sensor_type)
 
             init_sensor(address, post_authorization, sensor.identificator)
 
+        xml = xml + sub_xml
+
     else:
         flash("No active sensors to send values for after DESCRIPTOR initiation!", category={ 'theme' : 'warning' } )
+
+    xml = xml + '</list></obj>'
 
     try:
         r = requests.post("%s%s/%s%s%s%s" % (
@@ -193,7 +213,7 @@ def send_descriptor(address, post_authorization):
             ),
             headers = headers,
             timeout = 5,
-            data = ET.tostring(root)
+            data = xml
         )
 
         return r
@@ -209,14 +229,10 @@ def send_descriptor(address, post_authorization):
 
 def send_sensor_value(address, post_authorization, sensor_identificator, value):
 
-    ET.register_namespace("", "http://obix.org/ns/schema/1.1")
-
     headers = {'Authorization': 'Basic %s' % post_authorization, "content-type":"application/xml"}
 
-    tree = ET.parse('%s/app/web/xml/sensor_value.xml' % os.getcwd())
-    root = tree.getroot()
-
-    root.set('val', str(value))
+    xml = '<?xml version="1.0" encoding="UTF-8" ?>\
+<real xmlns="http://obix.org/ns/schema/1.1" val="%s" />' % str(value)
 
     try:
         r = requests.post("%s%s/%s%s/%s%s" % (
@@ -229,7 +245,7 @@ def send_sensor_value(address, post_authorization, sensor_identificator, value):
             ),
             headers = headers,
             timeout = 5,
-            data = ET.tostring(root)
+            data = xml
         )
 
         return r
