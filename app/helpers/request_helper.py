@@ -252,7 +252,7 @@ def get_sensor_values():
 
         from flask import json
 
-        return json.loads(r.text).value
+        return json.loads(r.text)['value']
 
     except ConnectionError:
         # flash("Cannot connect to device!", category={ 'theme': 'error' } )
