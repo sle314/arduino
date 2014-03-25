@@ -153,25 +153,26 @@ def sensor_send_value(sensor_id):
 
     if sensor and sensor.active:
         val = request_helper.get_sensor_value(sensor.pin)
-        old_value = float(sensor.value)
+        if val != False:
+            old_value = float(sensor.value)
 
-        value = sensor.min_value + ((int(val)/1024.0)*(sensor.max_value-sensor.min_value))
-        SensorInteractor.set_value(sensor_id, "%0.1f" % value)
-        if ( not abs( old_value - float(sensor.value) ) < sensor.threshold):
-            gateways = GatewayInteractor.get_all_device_registered()
+            value = sensor.min_value + ((int(val)/1024.0)*(sensor.max_value-sensor.min_value))
+            SensorInteractor.set_value(sensor_id, "%0.1f" % value)
+            if ( not abs( old_value - float(sensor.value) ) < sensor.threshold):
+                gateways = GatewayInteractor.get_all_device_registered()
 
-            if gateways:
-                for gateway in gateways:
+                if gateways:
+                    for gateway in gateways:
 
-                    r = request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor.value)
-                    if r != False:
-                        flash('Sensor value successfully sent to gateway %s!' % gateway.address, category={ 'theme' : 'success' } )
+                        r = request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor.value)
+                        if r != False:
+                            flash('Sensor value successfully sent to gateway %s!' % gateway.address, category={ 'theme' : 'success' } )
+                else:
+                    flash("No gateways with registered device!", category={ 'theme': 'warning' } )
+
+                return redirect("/sensors/#%d" % sensor_id)
             else:
-                flash("No gateways with registered device!", category={ 'theme': 'warning' } )
-
-            return redirect("/sensors/#%d" % sensor_id)
-        else:
-            flash("Insignificant change of sensor value for the set threshold! Value wasn't sent!", category={ 'theme': 'warning' } )
+                flash("Insignificant change of sensor value for the set threshold! Value wasn't sent!", category={ 'theme': 'warning' } )
     else:
         flash('Sensor does not exist!', category={ 'theme': 'error' } )
 

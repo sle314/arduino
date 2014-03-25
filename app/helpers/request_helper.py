@@ -237,7 +237,7 @@ def get_sensor_value(pin):
         return json.loads(r.text)['value']
 
     except ConnectionError:
-        flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
+        flash("Cannot connect to device!", category={ 'theme': 'error' } )
         return False
 
     except Timeout:

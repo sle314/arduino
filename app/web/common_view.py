@@ -15,3 +15,11 @@ def before_request():
 @app.route('/')
 def index():
     return render_template("gateway/index.html", settings=settings, gateways=GatewayInteractor.get_all())
+
+
+@app.route('/cron/')
+def cron():
+    gw = GatewayInteractor.get(1)
+    gw.name = "goood"
+    gw.save()
+    return True

@@ -3,6 +3,8 @@ STATIC_FOLDER = "web"
 
 DEBUG = False
 
+IP = "192.168.19.125"
+
 GATEWAY = "http://161.53.19.64:8080"
 NAME = "cyh-00606e334601"
 APPLICATIONS = "/m2m/applications"
