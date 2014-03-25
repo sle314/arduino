@@ -3,8 +3,13 @@ from app.settings import local as settings
 
 from app.web import app
 
-from flask import render_template, request
+from flask import render_template, request, make_response
 from app.arduino.gateway import GatewayInteractor
+from app.arduino.sensor import SensorInteractor
+
+from app.helpers.request_helper import get_sensor_values, send_sensor_value
+
+from flask import json
 
 @app.before_request
 def before_request():
@@ -19,7 +24,16 @@ def index():
 
 @app.route('/cron/')
 def cron():
-    gw = GatewayInteractor.get(1)
-    gw.name = "goood"
-    gw.save()
-    return True
+    values = get_sensor_values()
+
+    for gateway in GatewayInteractor.get_all_device_registered():
+        for sensor in SensorInteractor.get_all_active():
+            new_value = values[sensor.pin]
+            old_value = float(sensor.value)
+
+            value = sensor.min_value + ((int(new_value)/1024.0)*(sensor.max_value-sensor.min_value))
+            sensor.value = "%0.1f" % value
+            sensor.save()
+            if ( not abs( old_value - float(sensor.value) ) < sensor.threshold):
+                send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor.value)
+    return make_response()

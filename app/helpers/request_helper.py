@@ -244,6 +244,24 @@ def get_sensor_value(pin):
         flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
         return False
 
+def get_sensor_values():
+    try:
+        r = requests.get("http://localhost/data/get",
+            timeout = 10
+        )
+
+        from flask import json
+
+        return json.loads(r.text).value
+
+    except ConnectionError:
+        # flash("Cannot connect to device!", category={ 'theme': 'error' } )
+        return False
+
+    except Timeout:
+        # flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
+        return False
+
 
 def send_sensor_value(address, post_authorization, sensor_identificator, value):
 
