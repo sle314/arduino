@@ -30,10 +30,12 @@
                                     <td class="right">Last value:</td>
                                     <td class="left"><b>{{sensor.value}} {{sensor.unit}}</b></td>
                                 </tr>
-                                <tr>
-                                    <td class="right">Threshold:</td>
-                                    <td class="left"><b>{{sensor.threshold}}</b></td>
-                                </tr>
+                                {% if sensor.pin[0] == "A" %}
+                                    <tr>
+                                        <td class="right">Threshold:</td>
+                                        <td class="left"><b>{{sensor.threshold}}</b></td>
+                                    </tr>
+                                {% endif %}
                             </table>
                         </div>
                     </div>
@@ -46,9 +48,15 @@
                                     <a title="deactivate" href="/sensors/{{ sensor.id }}/deactivate/" class="btn btn-sm btn-danger" ><span class="glyphicon glyphicon-remove"></span></a>
                                 {% endif %}
                             </div>
-                            <div class="col-xs-3">
-                               <a title="send value" href="/sensors/{{ sensor.id }}/send_value/" class="btn btn-sm btn-info" {% if not sensor.active %}disabled{% endif %}><span class="glyphicon glyphicon-floppy-open"></span></a>
-                            </div>
+                            {% if sensor.pin[0] == "D" and sensor.toggle %}
+                                <div class="col-xs-3">
+                                   <a title="toggle" href="/sensors/{{ sensor.id }}/toggle/" class="btn btn-sm btn-info" {% if not sensor.active %}disabled{% endif %}><span class="glyphicon glyphicon-refresh"></span></a>
+                                </div>
+                            {% else %}
+                                <div class="col-xs-3">
+                                   <a title="send value" href="/sensors/{{ sensor.id }}/send_value/" class="btn btn-sm btn-info" {% if not sensor.active %}disabled{% endif %}><span class="glyphicon glyphicon-floppy-open"></span></a>
+                                </div>
+                            {% endif %}
                             <div class="col-xs-3">
                                 <a title="edit" class="btn btn-sm btn-info" href="/sensors/{{sensor.id}}/edit/"><span class="glyphicon glyphicon-pencil"></span></a>
                             </div>

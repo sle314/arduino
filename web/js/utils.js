@@ -22,7 +22,7 @@ var utils = {
 
     	$(form).on('submit', function(event){
             var fail = false;
-            $("input", event.currentTarget).each(function(){
+            $("input:not(:disabled)", event.currentTarget).each(function(){
                 if(ignoreList){
                     if ($.inArray($(this).attr('name'), ignoreList) == -1){
                         if ($(this).val() == ""){

@@ -179,6 +179,32 @@ def sensor_send_value(sensor_id):
     return redirect("/sensors/")
 
 
+@app.route('/sensors/<int:sensor_id>/toggle/')
+def sensor_toggle(sensor_id):
+    sensor = SensorInteractor.get(sensor_id)
+
+    if sensor and sensor.active:
+        if sensor.pin[0] == "D":
+            r = request_helper.toggle_sensor("".join(sensor.pin[1:]), sensor.value)
+            if r != False:
+                if r.status_code == 200:
+                    if sensor.value == 1:
+                        sensor.value = 0
+                    else:
+                        sensor.value = 1
+                    sensor.save()
+                    flash("Sensor toggled!", category={ 'theme': 'success' } )
+                    for gateway in GatewayInteractor.get_all_device_registered():
+                        request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor.value)
+                else:
+                    flash("Could not toggle device!", category={ "theme" : "success" })
+
+        return redirect("/sensors/#%d" % sensor_id)
+
+    flash('Sensor does not exist!', category={ 'theme': 'error' } )
+    return redirect("/sensors/")
+
+
 @app.route('/sensors/<int:sensor_id>/activate/')
 def activate_sensor(sensor_id):
     sensor = SensorInteractor.get(sensor_id)

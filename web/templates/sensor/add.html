@@ -28,11 +28,11 @@
                         </div>
                         <div class="col-xs-12 form-group">
                             <label class="control-label" for="min_value">Minimum value:</label>
-                            <input class="form-control" name="min_value" type="text" value="{% if sensor %}{{sensor.min_value}}{% endif %}"/>
+                            <input class="form-control" name="min_value" type="text" value="{% if sensor %}{{sensor.min_value}}{% else %}0{% endif %}"/>
                         </div>
                         <div class="col-xs-12 form-group">
                             <label class="control-label" for="max_value">Maximum value:</label>
-                            <input class="form-control" name="max_value" type="text" value="{% if sensor %}{{sensor.max_value}}{% endif %}"/>
+                            <input class="form-control" name="max_value" type="text" value="{% if sensor %}{{sensor.max_value}}{% else %}1{% endif %}"/>
                         </div>
                         <div class="col-xs-12 form-group">
                             <label class="control-label" for="unit">Unit:</label>
@@ -47,11 +47,8 @@
                                 <label class="checkbox-inline">
                                     <input type="checkbox" name="is_active" {% if sensor and sensor.active %}checked{% endif %} /> active
                                 </label>
-                                <label class="checkbox-inline">
+                                <label class="toggle checkbox-inline" style="display: none;">
                                     <input type="checkbox" name="toggle" {% if sensor and sensor.toggle %}checked{% endif %} /> toggleable
-                                </label>
-                                <label class="checkbox-inline">
-                                    <input type="checkbox" name="write" {% if sensor and sensor.write %}checked{% endif %} /> writeable
                                 </label>
                             </p>
                         </div>
@@ -85,6 +82,8 @@
                 function(event){
                     $("select[name='pin']").empty();
                     if ($(event.currentTarget).val() == "D"){
+                        $(".toggle").show();
+                        $("input[name='min_value'], input[name='max_value'], input[name='threshold'], input[name='unit']").attr("disabled", true);
                         for (var i=2; i<14; i++){
                             $("<option/>", {
                                 value: "D" + i,
@@ -94,6 +93,8 @@
                         }
                     }
                     else{
+                        $(".toggle").hide();
+                        $("input[name='min_value'], input[name='max_value'], input[name='threshold'], input[name='unit']").attr("disabled", false);
                         for (var i=0; i<6; i++){
                             $("<option/>", {
                                 value: "A" + i,

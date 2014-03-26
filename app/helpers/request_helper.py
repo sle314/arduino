@@ -295,6 +295,24 @@ def send_sensor_value(address, post_authorization, sensor_identificator, value):
         return False
 
 
+def toggle_sensor(pin, value):
+
+    try:
+        r = requests.post("http://localhost/digital/%s/%d" % (pin, int(value)),
+            timeout = 5
+        )
+
+        return r
+
+    except ConnectionError:
+        flash("Cannot connect to device!", category={ 'theme': 'error' } )
+        return False
+
+    except Timeout:
+        flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
+        return False
+
+
 def delete_sensor(address, post_authorization, sensor_identificator):
     headers = {'Authorization': 'Basic %s' % post_authorization}
 
