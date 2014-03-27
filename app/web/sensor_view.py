@@ -30,8 +30,6 @@ def store_sensor():
         if key not in ['is_active', 'register', 'write', 'toggle']:
             setattr(sensor, key, value.lower().replace(" ", "_") if key=="identificator" else value.replace(" ", "_"))
     try:
-        if request.form.get('write'):
-            sensor.write=True
 
         if request.form.get('toggle'):
             sensor.toggle = True
@@ -72,9 +70,6 @@ def update_sensor(sensor_id):
         for (key, value) in request.form.iteritems():
             if key not in ['is_active', 'register', 'write', 'toggle']:
                 setattr(old_sensor, key, value.lower().replace(" ", "_") if key=="identificator" else value.replace(" ", "_"))
-
-        if bool(request.form.get('write')) != old_sensor.write:
-            old_sensor.write = not old_sensor.write
 
         if bool(request.form.get('toggle')) != old_sensor.toggle:
             old_sensor.toggle = not old_sensor.toggle
@@ -154,11 +149,19 @@ def sensor_send_value(sensor_id):
     if sensor and sensor.active:
         val = request_helper.get_sensor_value(sensor.pin)
         if val != False:
-            old_value = float(sensor.value)
+            check = True
+            if sensor.pin[0] == "A":
+                old_value = float(sensor.value)
 
-            value = sensor.min_value + ((int(val)/1024.0)*(sensor.max_value-sensor.min_value))
-            SensorInteractor.set_value(sensor_id, "%0.1f" % value)
-            if ( not abs( old_value - float(sensor.value) ) < sensor.threshold):
+                value = sensor.min_value + ((int(val)/1024.0)*(sensor.max_value-sensor.min_value))
+                SensorInteractor.set_value(sensor_id, "%0.1f" % value)
+                check = abs( old_value - float(sensor.value) ) < sensor.threshold
+            else:
+                if val != sensor.value:
+                    SensorInteractor.set_value(sensor_id, "%s" % val)
+                    check = False
+
+            if ( not check):
                 gateways = GatewayInteractor.get_all_device_registered()
 
                 if gateways:
@@ -185,20 +188,20 @@ def sensor_toggle(sensor_id):
 
     if sensor and sensor.active:
         if sensor.pin[0] == "D":
-            r = request_helper.toggle_sensor("".join(sensor.pin[1:]), sensor.value)
+            r = request_helper.toggle_sensor(sensor.pin[0], "".join(sensor.pin[1:]))
             if r != False:
                 if r.status_code == 200:
-                    if sensor.value == 1:
-                        sensor.value = 0
-                    else:
-                        sensor.value = 1
-                    sensor.save()
-                    flash("Sensor toggled!", category={ 'theme': 'success' } )
-                    for gateway in GatewayInteractor.get_all_device_registered():
-                        request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor.value)
-                else:
-                    flash("Could not toggle device!", category={ "theme" : "success" })
+                    if r.text:
+                        sensor.value = r.text
+                        sensor.save()
+                        flash("Sensor toggled!", category={ 'theme': 'success' } )
+                        for gateway in GatewayInteractor.get_all_device_registered():
+                            request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor.value)
 
+                    else:
+                        flash("Could not toggle device!", category={ "theme" : "error" })
+                else:
+                    flash("Could not toggle device!", category={ "theme" : "error" })
         return redirect("/sensors/#%d" % sensor_id)
 
     flash('Sensor does not exist!', category={ 'theme': 'error' } )

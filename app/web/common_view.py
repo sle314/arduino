@@ -29,11 +29,19 @@ def cron():
     for gateway in GatewayInteractor.get_all_device_registered():
         for sensor in SensorInteractor.get_all_active():
             new_value = values[sensor.pin]
-            old_value = float(sensor.value)
+            check = True
+            if sensor.pin[0] == "A":
+                old_value = float(sensor.value)
 
-            value = sensor.min_value + ((int(new_value)/1024.0)*(sensor.max_value-sensor.min_value))
-            sensor.value = "%0.1f" % value
+                value = sensor.min_value + ((int(new_value)/1024.0)*(sensor.max_value-sensor.min_value))
+                sensor.value = "%0.1f" % value
+                check = abs( old_value - float(sensor.value) ) < sensor.threshold
+            else:
+                if new_value != sensor.value:
+                    check = False
+                    sensor.value = new_value
+
             sensor.save()
-            if ( not abs( old_value - float(sensor.value) ) < sensor.threshold):
+            if ( not check ):
                 send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor.value)
     return make_response()

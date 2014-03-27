@@ -7,7 +7,7 @@
     <div class="row center-row sensors center">
         {% for sensor in sensors %}
             <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 sensor center-col">
-                <div class="box">
+                <div class="box sensor">
                     <div class="row">
                         <div class="sensor-id col-xs-12 left"><a name="{{ sensor.id }}"></a></div>
                         <div class="col-xs-12">
@@ -30,12 +30,15 @@
                                     <td class="right">Last value:</td>
                                     <td class="left"><b>{{sensor.value}} {{sensor.unit}}</b></td>
                                 </tr>
-                                {% if sensor.pin[0] == "A" %}
-                                    <tr>
+                                <tr>
+                                    {% if sensor.pin[0] == "A" %}
                                         <td class="right">Threshold:</td>
                                         <td class="left"><b>{{sensor.threshold}}</b></td>
-                                    </tr>
-                                {% endif %}
+                                    {% else %}
+                                        <td>&nbsp;</td>
+                                        <td>&nbsp;</td>
+                                    {% endif %}
+                                </tr>
                             </table>
                         </div>
                     </div>
