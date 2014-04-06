@@ -29,6 +29,7 @@ def start(port=None):
     else:
         app.run(host="0.0.0.0", debug=settings.DEBUG)
 
+
 def create_db():
     from app.web import db
     db.create_all()

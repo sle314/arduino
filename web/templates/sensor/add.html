@@ -6,11 +6,18 @@
             <div class="box">
                 <div class="row">
                     <form class="form" id="sensor-form" action="/sensors/{% if sensor and sensor.id %}{{sensor.id}}/{% endif %}" method="POST">
+                        <div class="col-xs-12 form-group">
+                            <label class="control-label" for="io">Input/output:</label>
+                            <select class="form-control" name="io">
+                                <option value="input">Input</option>
+                                <option value="output">Output</option>
+                            </select>
+                        </div>
                         <div class="col-xs-7 form-group">
                             <label class="control-label" for="ad">Digital/analog:</label>
                             <select class="form-control" name="ad">
-                                <option value="D">Digital</option>
-                                <option value="A">Analog</option>
+                                <option value="digital">Digital</option>
+                                <option value="analog">Analog</option>
                             </select>
                         </div>
                         <div class="col-xs-5 form-group">
@@ -77,30 +84,53 @@
 
             {% if sensor and sensor.pin %}$("select[name='ad']").val("{{ sensor.pin[0] }}"){% endif %}
 
+            $("select[name='io']")
+            .on('change',
+                function(event){
+                    $("select[name='ad']").trigger("change");
+            });
+
             $("select[name='ad']")
             .on('change',
                 function(event){
                     $("select[name='pin']").empty();
-                    if ($(event.currentTarget).val() == "D"){
+                    if ($(event.currentTarget).val() == "digital"){
                         $(".toggle").show();
+                        if($("select[name='io']").val() == "input"){
+                            $(".toggle").hide();
+                        }
                         $("input[name='min_value'], input[name='max_value'], input[name='threshold'], input[name='unit']").attr("disabled", true);
                         for (var i=2; i<14; i++){
                             $("<option/>", {
                                 value: "D" + i,
                             })
-                            .text(i)
+                            .text("D" + i)
                             .appendTo("select[name='pin']");
                         }
                     }
                     else{
-                        $(".toggle").hide();
-                        $("input[name='min_value'], input[name='max_value'], input[name='threshold'], input[name='unit']").attr("disabled", false);
-                        for (var i=0; i<6; i++){
-                            $("<option/>", {
-                                value: "A" + i,
-                            })
-                            .text(i)
-                            .appendTo("select[name='pin']");
+                        if($("select[name='io']").val() == "input"){
+                            $(".toggle").hide();
+                            $("input[name='min_value'], input[name='max_value'], input[name='threshold'], input[name='unit']").attr("disabled", false);
+                            for (var i=0; i<6; i++){
+                                $("<option/>", {
+                                    value: "A" + i,
+                                })
+                                .text("A" + i)
+                                .appendTo("select[name='pin']");
+                            }
+                        }
+                        else{
+                            $(".toggle").show();
+                            $("input[name='min_value'], input[name='max_value'], input[name='threshold'], input[name='unit']").attr("disabled", true);
+                            pins = ["D3", "D5", "D6", "D9", "D10", "D11"]
+                            for (var i=0; i<pins.length; i++){
+                                $("<option/>", {
+                                    value: pins[i],
+                                })
+                                .text(pins[i])
+                                .appendTo("select[name='pin']");
+                            }
                         }
                     }
                 }

@@ -3,10 +3,12 @@ STATIC_FOLDER = "web"
 
 DEBUG = False
 
-IP = "192.168.19.125"
+IP = "192.168.1.224"
+PUBLIC_IP = "93.138.10.235"
+PORT = "5000"
 
-GATEWAY = "http://161.53.19.64:8080"
-NAME = "cyh-00606e334601"
+GATEWAY = "http://161.53.19.65:8080"
+NAME = "cyh-00606e334586"
 APPLICATIONS = "/m2m/applications"
 ACCESS_RIGHTS = "/m2m/accessRights/Locadmin_AR"
 CONTAINERS = "/containers"
@@ -14,7 +16,7 @@ DESCRIPTOR = "/DESCRIPTOR"
 CONTENT_INSTANCES = "/contentInstances"
 LATEST_CONTENT = "/latest/content"
 
-AUTH = "http://nsc1.actility.com:8088/m2m/applications/TPK_d83bde37ce51fbeb14fdbcb920e56e8d"
+AUTH = "http://nsc1.actility.com:8088/m2m/applications/TPK_emVjQGZlci5ociANCg=="
 # AUTH = "aHR0cCUzQS8vbnNjMS5hY3RpbGl0eS5jb20lM0E4MDg4L20ybS9hcHBsaWNhdGlvbnMvVFBLX2Q4M2JkZTM3Y2U1MWZiZWIxNGZkYmNiOTIwZTU2ZThk"
 
 POST_AUTH = "http://nsc1.actility.com:8088/m2m/applications/SYSTEM"

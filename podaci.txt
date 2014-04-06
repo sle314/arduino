@@ -1,0 +1,40 @@
+GW1: http://nsc1.actility.com:8088/m2m/applications/TPK_emVjQGZlci5ociANCg==
+	 cyh-00606e334586
+	 161.53.19.65
+TPK1: aHR0cCUzQS8vbnNjMS5hY3RpbGl0eS5jb20lM0E4MDg4L20ybS9hcHBsaWNhdGlvbnMvVFBLX2VtVmpRR1psY2k1b2NpQU5DZyUzRCUzRA==
+	 
+GW2: http://nsc1.actility.com:8088/m2m/applications/TPK_d83bde37ce51fbeb14fdbcb920e56e8d
+	 cyh-00606e334601
+	 161.53.19.64
+TPK2: aHR0cCUzQS8vbnNjMS5hY3RpbGl0eS5jb20lM0E4MDg4L20ybS9hcHBsaWNhdGlvbnMvVFBLX2Q4M2JkZTM3Y2U1MWZiZWIxNGZkYmNiOTIwZTU2ZThk
+TPK2: aHR0cCUzQS8vbnNjMS5hY3RpbGl0eS5jb20lM0E4MDg4L20ybS9hcHBsaWNhdGlvbnMvVFBLX2Q4M2JkZTM3Y2U1MWZiZWIxNGZkYmNiOTIwZTU2ZThk
+
+php ongv2sample.php -r aHR0cCUzQS8vbnNjMS5hY3RpbGl0eS5jb20lM0E4MDg4L20ybS9hcHBsaWNhdGlvbnMvVFBLX2VtVmpRR1psY2k1b2NpQU5DZyUzRCUzRA== -n nsc1.actility.com:8088
+ongv2sample.py -r emVjQGZlci5ociANCg== -n nsc1.actility.com:8088
+
+GW1 - cyh-00606e334586
+	- 161.53.19.65
+GW2 - cyh-00606e334601
+	- 161.53.19.64
+
+
+cocohouse.tel.fer.hr: aHR0cCUzQS8vY29jb2hvdXNlLnRlbC5mZXIuaHI=
+system GW1: aHR0cCUzQS8vbnNjMS5hY3RpbGl0eS5jb20lM0E4MDg4L20ybS9hcHBsaWNhdGlvbnMvU1lTVEVN
+
+SSH:
+
+root
+xk6KhvkzF3P5W4j
+
+/home/ong/etc 
+
+./ong restart
+
+http://188.129.105.181:8080/NSC/AccessPoint
+
+•	u datoteci /home/ong/etc/scl/knoplerfish/props.xargs potrebno je promijeniti sljedeće parametre:
+o	Fcom.actility.scl.app.config.nsclUri  u vrijednost URI-ja novog NSC-a;
+o	neobavezno - Fcom.actility.song.config.domainName u vrijednost željene domene (nije bitno)
+•	u datoteci /home/ong/usr/etc/zigbee/spvconfig.xml potrebno je promijeniti sljedeće parametre:
+o	w_nsclbaseuri u vrijednost URI-ja novog NSC-a.
+o	neobavezno - w_domainname u vrijednost željene domene

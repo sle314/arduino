@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from . import app
-from flask import render_template, request, session, redirect, flash
+from flask import render_template, request, session, redirect, flash, abort, make_response
 from sqlalchemy.exc import IntegrityError
 
 import os
@@ -180,6 +180,25 @@ def sensor_send_value(sensor_id):
         flash('Sensor does not exist!', category={ 'theme': 'error' } )
 
     return redirect("/sensors/")
+
+
+@app.route('/retargeting1/sensors/<identificator>/toggle/')
+def retargeting_sensor_toggle(identificator):
+    sensor = SensorInteractor.get_by_identificator(identificator)
+
+    if sensor and sensor.active:
+        if sensor.pin[0] == "D":
+            r = request_helper.toggle_sensor(sensor.pin[0], "".join(sensor.pin[1:]))
+            if r != False:
+                if r.status_code == 200:
+                    if r.text:
+                        sensor.value = r.text
+                        sensor.save()
+                        for gateway in GatewayInteractor.get_all_device_registered():
+                            request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor.value)
+                return make_response((r.text, r.status_code))
+    return abort(400)
+
 
 
 @app.route('/sensors/<int:sensor_id>/toggle/')

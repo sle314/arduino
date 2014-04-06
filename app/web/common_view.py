@@ -45,3 +45,25 @@ def cron():
             if ( not check ):
                 send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor.value)
     return make_response()
+
+
+@app.route('/ip_cron/')
+def ip_cron():
+    import json
+    from app.arduino.common import PublicIPInteractor
+    from urllib2 import urlopen
+
+    ip = PublicIPInteractor.get()
+    currentIP = json.load(urlopen('http://httpbin.org/ip'))['origin'].rstrip()
+
+    if (not ip.address or ip.address != currentIP):
+        ip.address = currentIP
+        ip.save()
+        for gateway in GatewayInteractor.get_all_device_registered():
+            request_helper.delete_device(gateway.address, gateway.post_authorization)
+            request_helper.init_device(gateway.address, gateway.post_authorization)
+            request_helper.init_descriptor(gateway.address, gateway.post_authorization)
+            request_helper.send_descriptor(gateway.address, gateway.post_authorization)
+            for sensor in SensorInteractor.get_all_active():
+                request_helper.init_sensor(gateway.address, gateway.post_authorization, sensor.identificator)
+    return make_response()

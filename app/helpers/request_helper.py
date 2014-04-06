@@ -2,11 +2,12 @@ from app.settings import local as settings
 from requests.exceptions import ConnectionError, Timeout
 import requests
 
-from flask import flash
+from flask import flash, session
 import os
 import re
 
 from app.arduino.sensor import SensorInteractor
+from app.arduino.common import PublicIPInteractor
 
 def check_device(address, authorization):
     headers = {'Authorization': 'Basic %s' % authorization}
@@ -57,12 +58,19 @@ def init_device(address, post_authorization):
 
     xml = '<?xml version="1.0" encoding="UTF-8"?>\
 <m2m:application appId="%(app_id)s" xmlns:m2m="http://uri.etsi.org/m2m">\
+    <m2m:aPoC>http://%(public_ip)s:%(port)s/</m2m:aPoC>\
+          <m2m:aPoCPaths>\
+                    <m2m:aPoCPath>\
+                              <m2m:path>/m2m/applications/%(app_id)s/retargeting1</m2m:path>\
+                              <m2m:accessRightID>/m2m/accessRights/Locadmin_AR2</m2m:accessRightID>\
+                    </m2m:aPoCPath>\
+          </m2m:aPoCPaths>\
     <m2m:accessRightID>/m2m/accessRights/Locadmin_AR/</m2m:accessRightID>\
     <m2m:searchStrings>\
         <m2m:searchString>ETSI.ObjectType/ETSI.AN_NODE</m2m:searchString>\
         <m2m:searchString>ETSI.ObjectTechnology/ACTILITY.%(app_id)s</m2m:searchString>\
     </m2m:searchStrings>\
-</m2m:application>' % { "app_id" : settings.DEVICE_ID }
+</m2m:application>' % { "app_id" : settings.DEVICE_ID, "public_ip" : PublicIPInteractor.get().address, "port" : settings.PORT }
 
     headers = {'Authorization': 'Basic %s' % post_authorization, "content-type":"application/xml"}
 
@@ -75,6 +83,8 @@ def init_device(address, post_authorization):
             timeout = 5,
             data = xml
         )
+
+        print r.text
 
         return r
     except ConnectionError:
@@ -179,19 +189,24 @@ def send_descriptor(address, post_authorization):
 
         for sensor in sensors:
 
-            sensor_type = sensor.type
-            if sensor_type in type:
-                sensor_type = '%s%02d' % ( sensor.type, n)
-                n = n + 1
+            # sensor_type = sensor.type
+            # if sensor_type in type:
+            #     sensor_type = '%s%02d' % ( sensor.type, n)
+            #     n = n + 1
             sub_xml = sub_xml + '<obj>\
-            <str name="interfaceID" val="%(sensor_type)s.Srv" />\
+            <str name="interfaceID" val="%(sensor_identificator)s.Srv" />\
             <real href="%(sensor_href)s" name="m2mMeasuredValue" unit="obix:units/%(sensor_unit)s" />\
-        </obj>' % { "sensor_type" : sensor_type,
+        ' % { "sensor_identificator" : sensor.identificator,
                     "sensor_unit" : sensor.unit,
                     "sensor_href" : '%s/%s%s/%s%s%s' % (settings.APPLICATIONS, settings.DEVICE_ID, settings.CONTAINERS, sensor.identificator, settings.CONTENT_INSTANCES, settings.LATEST_CONTENT)
                 }
+            if sensor.toggle:
+                sub_xml = sub_xml + \
+                    '<op name="toggle" href="/m2m/applications/%(app_id)s/retargeting1/sensors/%(sensor_id)s/toggle/" />' % { "app_id" : settings.DEVICE_ID, "sensor_id" : sensor.identificator}
 
-            type.append(sensor_type)
+            sub_xml = sub_xml + '</obj>'
+
+            # type.append(sensor_type)
 
             init_sensor(address, post_authorization, sensor.identificator)
 
