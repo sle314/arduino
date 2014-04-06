@@ -9,7 +9,7 @@ from app.arduino.sensor import SensorInteractor
 
 from app.helpers.request_helper import get_sensor_values, send_sensor_value
 
-from flask import json
+from flask import json, jsonify
 
 @app.before_request
 def before_request():
@@ -20,6 +20,17 @@ def before_request():
 @app.route('/')
 def index():
     return render_template("gateway/index.html", settings=settings, gateways=GatewayInteractor.get_all())
+
+
+@app.route('/check_pin/<identificator>/<pin>/')
+def check_pin(identificator, pin):
+    sensors = SensorInteractor.get_active_for_pin(pin)
+    sensor_dict = {}
+    if sensors:
+        for sensor in sensors:
+            if sensor.identificator != identificator:
+                sensor_dict[str(sensor.id)] = sensor.identificator
+    return jsonify(sensor_dict)
 
 
 @app.route('/cron/')

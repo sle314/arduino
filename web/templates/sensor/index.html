@@ -6,7 +6,11 @@
 {% block includes %}
     <script type="text/javascript">
         $(document).ready(function(){
-            $("#navbar-collapse li#view-sensors").addClass("active")
-        })
+            $("#navbar-collapse li#view-sensors").addClass("active");
+
+            $("button.write").on('click', function(event){
+                $(event.currentTarget).parents(".sensor").find(".write-modal").modal("show");
+            })
+        });
     </script>
 {% endblock %}

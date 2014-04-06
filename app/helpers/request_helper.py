@@ -10,18 +10,18 @@ from app.arduino.sensor import SensorInteractor
 from app.arduino.common import PublicIPInteractor, PinInteractor
 
 
-def get_from_pin(ad, pin):
+def get_from_pin(mode, pin):
     try:
-        requests.get("http://%s%s/%s/%s" % (
+        r = requests.get("http://%s%s/%s/%s" % (
                 settings.LOCAL,
                 settings.REST_ROOT,
-                ad,
+                mode,
                 pin
                 ),
             timeout = 5
         )
-    
-        return r.text
+
+        return r
 
     except ConnectionError:
         flash("Cannot connect to %s!" % settings.LOCAL, category={'theme' : 'error'})
@@ -31,19 +31,19 @@ def get_from_pin(ad, pin):
         flash("Request timed out. Wrong IP?", category={'theme' : 'error'})
         return False
 
-def write_to_pin(ad, pin, value):
+def write_to_pin(mode, pin, value):
     try:
-        requests.get("http://%s/%s/%s/%s" % (
+        r = requests.get("http://%s%s/%s/%s/%s" % (
                 settings.LOCAL,
                 settings.REST_ROOT,
-                ad,
+                mode,
                 pin,
                 value
                 ),
             timeout = 5
         )
 
-        flash("Pin %s value successfully written!" % (pin, ), category={'theme' : 'success'} );
+        flash("Pin %s value successfully written!" % pin, category={'theme' : 'success'} );
         return r
 
     except ConnectionError:
@@ -81,26 +81,24 @@ def init_pin_modes():
                     break
 
 def change_pin_mode(pin, mode):
-    if pin[0] == "D":
-        try:
-            r = requests.get("http://%s:%s%s/%s/%s" % (
-                    settings.IP_DNS,
-                    settings.PORT,
-                    settings.MODE,
-                    pin[1:],
-                    mode
-                    ),
-                timeout = 5
-            )
-            return r
+    try:
+        r = requests.get("http://%s%s/%s/%s" % (
+                settings.LOCAL,
+                settings.MODE,
+                pin,
+                mode
+                ),
+            timeout = 5
+        )
+        return r
 
-        except ConnectionError:
-            flash("Cannot connect to %s!" % settings.IP_DNS, category={ 'theme': 'error' } )
-            return False
+    except ConnectionError:
+        flash("Cannot connect to %s!" % settings.LOCAL, category={ 'theme': 'error' } )
+        return False
 
-        except Timeout:
-            flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
-            return False
+    except Timeout:
+        flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
+        return False
 
 def check_device(address, authorization):
     headers = {'Authorization': 'Basic %s' % authorization}
@@ -176,8 +174,6 @@ def init_device(address, post_authorization):
             timeout = 5,
             data = xml
         )
-
-        print r.text
 
         return r
     except ConnectionError:
@@ -403,20 +399,16 @@ def send_sensor_value(address, post_authorization, sensor_identificator, value):
         return False
 
 
-def toggle_sensor(ad, pin):
+def toggle_sensor(type, pin):
 
-    type = "digital"
-    if ad == "A":
-        type = "analog"
+    r = get_from_pin(type, pin)
 
-    r = get_from_pin(type, pin[1:])
-
-    if r:
+    if r.status_code == 200:
         value = "0"
-        if r == "0":
+        if r.text == "0":
             value = "1"
 
-        r = write_to_pin(type, pin[1:], value)
+        r = write_to_pin(type, pin, value)
 
         return r
 

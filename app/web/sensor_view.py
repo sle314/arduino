@@ -38,6 +38,12 @@ def store_sensor():
         sensor.save()
 
         if request.form.get('is_active'):
+
+            sensors = SensorInteractor.get_active_for_pin(request.form['pin'])
+            if sensors:
+                for sensor_on_pin in sensors:
+                    deactivate_sensor(sensor_on_pin.id)
+
             activate_sensor(sensor.id)
 
             pin = PinInteractor.get(request.form['pin'])
@@ -47,13 +53,14 @@ def store_sensor():
             pin.last_io = request.form['io']
             pin.save()
 
-            r = request_helper.change_pin_mode(request.form['pin'], request.form['io'])
+            if request.form['pin'][0] == "D":
+                r = request_helper.change_pin_mode(request.form['pin'][1:], request.form['io'])
 
-            if r!= False:
-                flash("Pin %s mode successfully changed to %s!" % (request.form['pin'], request.form['io']), category={'theme' : 'success'} )
-            else:
-                flash("Pin mode could not be changed!", category={'theme': 'error'})
-        
+                if r!= False:
+                    flash("Pin %s mode successfully changed to %s!" % (request.form['pin'], request.form['io']), category={'theme' : 'success'} )
+                else:
+                    flash("Pin mode could not be changed!", category={'theme': 'error'})
+
         flash("Sensor added!", category={ 'theme': 'success' } )
         if (request.form.get('register')):
             return redirect("/sensors/%d/register/" % sensor.id)
@@ -70,6 +77,7 @@ def update_sensor(sensor_id):
     identificator = request.form.get("identificator").lower().replace(" ", "_")
     old_sensor = SensorInteractor.get(sensor_id)
     sensor = SensorInteractor.get_by_identificator(identificator)
+    old_io = old_sensor.io
 
     if old_sensor:
         if sensor and sensor != old_sensor:
@@ -82,7 +90,7 @@ def update_sensor(sensor_id):
                 for gateway in gateways:
                     request_helper.delete_sensor(gateway.address, gateway.post_authorization, old_sensor.identificator)
 
-        for (key, value) in request.form.iteritems():            
+        for (key, value) in request.form.iteritems():
             if key not in ['is_active', 'register', 'write', 'toggle']:
                 setattr(old_sensor, key, value.lower().replace(" ", "_") if key=="identificator" else value.replace(" ", "_"))
 
@@ -92,6 +100,12 @@ def update_sensor(sensor_id):
         old_sensor.save()
 
         if request.form.get('is_active'):
+
+            sensors = SensorInteractor.get_active_for_pin(request.form['pin'])
+            if sensors:
+                for sensor_on_pin in sensors:
+                    deactivate_sensor(sensor_on_pin.id)
+
             activate_sensor(sensor_id)
 
             pin = PinInteractor.get(request.form['pin'])
@@ -101,12 +115,13 @@ def update_sensor(sensor_id):
             pin.last_io = request.form['io']
             pin.save()
 
-            r = request_helper.change_pin_mode(request.form['pin'], request.form['io'])
+            if request.form['pin'][0] == "D" and request.form['io'] != old_io:
+                r = request_helper.change_pin_mode(request.form['pin'][1:], request.form['io'])
 
-            if r!= False:
-                flash("Pin %s mode successfully changed to %s!" % (request.form['pin'], request.form['io']), category={'theme' : 'success'} )
-            else:
-                flash("Pin mode could not be changed!", category={'theme': 'error'})
+                if r!= False:
+                    flash("Pin %s mode successfully changed to %s!" % (request.form['pin'], request.form['io']), category={'theme' : 'success'} )
+                else:
+                    flash("Pin mode could not be changed!", category={'theme': 'error'})
         else:
             deactivate_sensor(sensor_id)
 
@@ -176,35 +191,30 @@ def sensor_send_value(sensor_id):
     sensor = SensorInteractor.get(sensor_id)
 
     if sensor and sensor.active:
-        val = request_helper.get_sensor_value(sensor.pin)
-        if val != False:
-            check = True
+        r = request_helper.get_from_pin(sensor.ad, sensor.pin[1:])
+        if r != False:
+            val = r.text
             if sensor.pin[0] == "A":
-                old_value = float(sensor.value)
-
                 value = sensor.min_value + ((int(val)/1024.0)*(sensor.max_value-sensor.min_value))
                 SensorInteractor.set_value(sensor_id, "%0.1f" % value)
-                check = abs( old_value - float(sensor.value) ) < sensor.threshold
             else:
                 if val != sensor.value:
                     SensorInteractor.set_value(sensor_id, "%s" % val)
-                    check = False
 
-            if ( not check):
-                gateways = GatewayInteractor.get_all_device_registered()
+            gateways = GatewayInteractor.get_all_device_registered()
 
-                if gateways:
-                    for gateway in gateways:
+            if gateways:
+                for gateway in gateways:
 
-                        r = request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor.value)
-                        if r != False:
-                            flash('Sensor value successfully sent to gateway %s!' % gateway.address, category={ 'theme' : 'success' } )
-                else:
-                    flash("No gateways with registered device!", category={ 'theme': 'warning' } )
-
-                return redirect("/sensors/#%d" % sensor_id)
+                    r = request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor.value)
+                    if r != False:
+                        flash('Sensor value successfully sent to gateway %s!' % gateway.address, category={ 'theme' : 'success' } )
             else:
-                flash("Insignificant change of sensor value for the set threshold! Value wasn't sent!", category={ 'theme': 'warning' } )
+                flash("No gateways with registered device!", category={ 'theme': 'warning' } )
+
+            return redirect("/sensors/#%d" % sensor_id)
+        else:
+            flash("Insignificant change of sensor value for the set threshold! Value wasn't sent!", category={ 'theme': 'warning' } )
     else:
         flash('Sensor does not exist!', category={ 'theme': 'error' } )
 
@@ -216,8 +226,8 @@ def retargeting_sensor_toggle(identificator):
     sensor = SensorInteractor.get_by_identificator(identificator)
 
     if sensor and sensor.active:
-        if sensor.pin[0] == "D":
-            r = request_helper.toggle_sensor(sensor.pin[0], "".join(sensor.pin[1:]))
+        if sensor.io == "output":
+            r = request_helper.toggle_sensor(sensor.ad, sensor.pin[1:])
             if r != False:
                 if r.status_code == 200:
                     if r.text:
@@ -235,8 +245,8 @@ def sensor_toggle(sensor_id):
     sensor = SensorInteractor.get(sensor_id)
 
     if sensor and sensor.active:
-        if sensor.pin[0] == "D":
-            r = request_helper.toggle_sensor(sensor.pin[0], "".join(sensor.pin[1:]))
+        if sensor.io == "output":
+            r = request_helper.toggle_sensor(sensor.ad, sensor.pin[1:])
             if r != False:
                 if r.status_code == 200:
                     if r.text:
@@ -304,3 +314,14 @@ def deactivate_sensor(sensor_id):
     else:
         flash("Sensor does not exist!", category={ 'theme': 'error' } )
     return redirect("/sensors/")
+
+
+@app.route('/sensors/write/', methods=['POST'])
+def write_to_sensor():
+    sensor = SensorInteractor.get(int(request.form["sensor_id"]))
+    sensor.value = request.form["value"]
+    sensor.save()
+    for gateway in GatewayInteractor.get_all_device_registered():
+        request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor.value)
+    request_helper.write_to_pin(sensor.ad, sensor.pin[1:], sensor.value)
+    return redirect("/sensors/#%s" % sensor.id)

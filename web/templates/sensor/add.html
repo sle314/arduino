@@ -60,7 +60,7 @@
                             </p>
                         </div>
                         <div class="col-xs-12 center">
-                            <button class="btn btn-info" type="submit">
+                            <button class="btn btn-info submit-sensor" type="button">
                                 <span class="glyphicon glyphicon-ok"></span>
                                 &nbsp;
                                 {% if sensor and sensor.id %}
@@ -69,6 +69,25 @@
                                     Add
                                 {% endif %}
                             </button>
+                        </div>
+                        <div class="modal fade" id="pin-modal">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                        <h4 class="modal-title">Active sensors on pin</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>The following sensors will be deactivated:</p>
+                                        <div class="list">
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer center">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                        <button type="submit" class="btn btn-primary">Proceed</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -79,7 +98,41 @@
 
 {% block includes %}
     <script type="text/javascript">
+
+
+
         $(document).ready(function(){
+
+            function checkPin(){
+                if ($("input[name='is_active']").is(":checked")){
+                    pin = $("select[name='pin']").val();
+                    identificator = $("input[name='identificator']").val();
+                    if (identificator != ""){
+                        $.ajax({
+                            url: "/check_pin/" + identificator + "/" + pin + "/",
+                            dataType: "json",
+                            success: function(data){
+                                $("#pin-modal .modal-body .list").empty();
+                                if (Object.keys(data).length > 0){
+                                    for (var key in data) {
+                                        $("<div/>", {"style": "font-size: 1.2em; font-weight: bold;"}).html(data[key]).appendTo("#pin-modal .modal-body .list");
+                                    }
+                                    $("#pin-modal").modal('show');
+
+                                }
+                                else{
+                                    $("#sensor-form").submit();
+                                }
+                            }
+                        });
+                    }
+                }
+                else{
+                    $("#sensor-form").submit();
+                }
+            }
+
+            $(".submit-sensor").on('click', checkPin)
             $("#navbar-collapse li#add-sensor").addClass("active")
 
             $("select[name='io']")
@@ -96,6 +149,7 @@
                         $(".toggle").show();
                         if($("select[name='io']").val() == "input"){
                             $(".toggle").hide();
+                            $(".toggle input").attr("checked", false);
                         }
                         $("input[name='min_value'], input[name='max_value'], input[name='threshold'], input[name='unit']").attr("disabled", true);
                         for (var i=2; i<14; i++){
@@ -107,8 +161,9 @@
                         }
                     }
                     else{
+                        $(".toggle").hide();
+                        $(".toggle input").attr("checked", false);
                         if($("select[name='io']").val() == "input"){
-                            $(".toggle").hide();
                             $("input[name='min_value'], input[name='max_value'], input[name='threshold'], input[name='unit']").attr("disabled", false);
                             for (var i=0; i<6; i++){
                                 $("<option/>", {
@@ -119,7 +174,6 @@
                             }
                         }
                         else{
-                            $(".toggle").show();
                             $("input[name='min_value'], input[name='max_value'], input[name='threshold'], input[name='unit']").attr("disabled", true);
                             pins = ["D3", "D5", "D6", "D9", "D10", "D11"]
                             for (var i=0; i<pins.length; i++){
@@ -131,6 +185,9 @@
                             }
                         }
                     }
+                    {% if sensor and sensor.pin %}
+                        $("select[name='pin']").val("{{ sensor.pin }}")
+                    {% endif %}
                 }
             );
 
@@ -140,7 +197,7 @@
 
             {% if sensor and sensor.ad %}
                 $("select[name='ad']").val("{{ sensor.ad }}")
-            {% endif %}            
+            {% endif %}
 
             {% if sensor and sensor.io %}
                 $("select[name='io']").val("{{ sensor.io }}")
