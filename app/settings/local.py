@@ -5,9 +5,11 @@ DEBUG = True
 
 IP = "192.168.1.224"
 IP_DNS = "arduino.local"
+LOCAL = "localhost"
 PUBLIC_IP = "93.138.10.235"
 PORT = "5000"
-MODE = "/arduino/mode"
+REST_ROOT = "/arduino"
+MODE = "/mode"
 
 GATEWAY = "http://161.53.19.65:8080"
 NAME = "cyh-00606e334586"

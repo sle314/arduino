@@ -9,8 +9,6 @@ from fabric.state import output as fab_output
 
 from app.settings import local as settings
 
-from app.helpers.request_helper import init_pin_modes
-
 fab_output["running"] = False
 
 
@@ -30,6 +28,8 @@ def start(port=None):
         app.run(host="0.0.0.0", port=int(port), debug=settings.DEBUG)
     else:
         app.run(host="0.0.0.0", debug=settings.DEBUG)
+    
+    from app.helpers.request_helper import init_pin_modes
     init_pin_modes()
 
 

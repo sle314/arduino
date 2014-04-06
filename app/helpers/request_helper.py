@@ -9,51 +9,98 @@ import re
 from app.arduino.sensor import SensorInteractor
 from app.arduino.common import PublicIPInteractor, PinInteractor
 
+
+def get_from_pin(ad, pin):
+    try:
+        requests.get("http://%s%s/%s/%s" % (
+                settings.LOCAL,
+                settings.REST_ROOT,
+                ad,
+                pin
+                ),
+            timeout = 5
+        )
+    
+        return r.text
+
+    except ConnectionError:
+        flash("Cannot connect to %s!" % settings.LOCAL, category={'theme' : 'error'})
+        return False
+
+    except Timeout:
+        flash("Request timed out. Wrong IP?", category={'theme' : 'error'})
+        return False
+
+def write_to_pin(ad, pin, value):
+    try:
+        requests.get("http://%s/%s/%s/%s" % (
+                settings.LOCAL,
+                settings.REST_ROOT,
+                ad,
+                pin,
+                value
+                ),
+            timeout = 5
+        )
+
+        flash("Pin %s value successfully written!" % (pin, ), category={'theme' : 'success'} );
+        return r
+
+    except ConnectionError:
+        flash("Cannot connect to %s!" % settings.LOCAL, category={'theme' : 'error'})
+        return False
+
+    except Timeout:
+        flash("Request timed out. Wrong IP?", category={'theme' : 'error'})
+        return False
+
 def init_pin_modes():
     pins = PinInteractor.get_all()
     if pins:
         for pin in pins:
-            try:
-                requests.get("http://%s:%s%s/%s/%s" % (
-                        settings.IP_DNS,
-                        settings.PORT,
-                        settings.MODE,
-                        pin.pin[1:],
-                        pin.io
-                        ),
-                    timeout = 5
-                )
+            if pin.pin[0] == "D":
+                try:
+                    requests.get("http://%s%s%s/%s/%s" % (
+                            settings.LOCAL,
+                            settings.REST_ROOT,
+                            settings.MODE,
+                            pin.pin[1:],
+                            pin.last_io
+                            ),
+                        timeout = 5
+                    )
 
-                print "Pin %s mode successfully changed to %s!" % (pin.pin[1:], pin.io)
+                    print "Pin %s mode successfully changed to %s!" % (pin.pin, pin.last_io)
 
-            except ConnectionError:
-                print "Cannot connect to %s!" % settings.IP_DNS
-                break;
+                except ConnectionError:
+                    print "Cannot connect to %s!" % settings.IP_DNS
+                    break
 
-            except Timeout:
-                print "Request timed out. Wrong IP?"
-                break;
+                except Timeout:
+                    print "Request timed out. Wrong IP?"
+                    break
 
 def change_pin_mode(pin, mode):
-    try:
-        r = requests.get("http://%s:%s%s/%s/%s" % (
-                settings.IP_DNS,
-                settings.PORT,
-                settings.MODE,
-                pin[1:],
-                mode
-                ),
-            timeout = 5
-        )
-        return r
+    if pin[0] == "D":
+        try:
+            r = requests.get("http://%s:%s%s/%s/%s" % (
+                    settings.IP_DNS,
+                    settings.PORT,
+                    settings.MODE,
+                    pin[1:],
+                    mode
+                    ),
+                timeout = 5
+            )
+            return r
 
-    except ConnectionError:
-        flash("Cannot connect to %s!" % settings.IP_DNS, category={ 'theme': 'error' } )
-        return False
+        except ConnectionError:
+            flash("Cannot connect to %s!" % settings.IP_DNS, category={ 'theme': 'error' } )
+            return False
 
-    except Timeout:
-        flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
-        return False
+        except Timeout:
+            flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
+            return False
 
 def check_device(address, authorization):
     headers = {'Authorization': 'Basic %s' % authorization}
@@ -362,33 +409,16 @@ def toggle_sensor(ad, pin):
     if ad == "A":
         type = "analog"
 
-    try:
-        r = requests.get("http://localhost/arduino/%s/%s" % (type, pin),
-            timeout = 5
-        )
+    r = get_from_pin(type, pin[1:])
 
-        if r.text:
-            value = "0"
-            if r.text == "0":
-                value = "1"
+    if r:
+        value = "0"
+        if r == "0":
+            value = "1"
 
-            r = requests.get("http://localhost/arduino/%s/%s/%s" % (type, pin, value),
-                timeout = 5
-            )
+        r = write_to_pin(type, pin[1:], value)
 
-            return r
-
-        flash("Cannot connect to device!", category={ 'theme': 'error' } )
-        return False
-
-
-    except ConnectionError:
-        flash("Cannot connect to device!", category={ 'theme': 'error' } )
-        return False
-
-    except Timeout:
-        flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
-        return False
+        return r
 
 
 def delete_sensor(address, post_authorization, sensor_identificator):
