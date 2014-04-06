@@ -7,7 +7,53 @@ import os
 import re
 
 from app.arduino.sensor import SensorInteractor
-from app.arduino.common import PublicIPInteractor
+from app.arduino.common import PublicIPInteractor, PinInteractor
+
+def init_pin_modes():
+    pins = PinInteractor.get_all()
+    if pins:
+        for pin in pins:
+            try:
+                requests.get("http://%s:%s%s/%s/%s" % (
+                        settings.IP_DNS,
+                        settings.PORT,
+                        settings.MODE,
+                        pin.pin[1:],
+                        pin.io
+                        ),
+                    timeout = 5
+                )
+
+                print "Pin %s mode successfully changed to %s!" % (pin.pin[1:], pin.io)
+
+            except ConnectionError:
+                print "Cannot connect to %s!" % settings.IP_DNS
+                break;
+
+            except Timeout:
+                print "Request timed out. Wrong IP?"
+                break;
+
+def change_pin_mode(pin, mode):
+    try:
+        r = requests.get("http://%s:%s%s/%s/%s" % (
+                settings.IP_DNS,
+                settings.PORT,
+                settings.MODE,
+                pin[1:],
+                mode
+                ),
+            timeout = 5
+        )
+        return r
+
+    except ConnectionError:
+        flash("Cannot connect to %s!" % settings.IP_DNS, category={ 'theme': 'error' } )
+        return False
+
+    except Timeout:
+        flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
+        return False
 
 def check_device(address, authorization):
     headers = {'Authorization': 'Basic %s' % authorization}

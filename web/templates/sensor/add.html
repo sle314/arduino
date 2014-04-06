@@ -82,8 +82,6 @@
         $(document).ready(function(){
             $("#navbar-collapse li#add-sensor").addClass("active")
 
-            {% if sensor and sensor.pin %}$("select[name='ad']").val("{{ sensor.pin[0] }}"){% endif %}
-
             $("select[name='io']")
             .on('change',
                 function(event){
@@ -140,9 +138,19 @@
                 $(event.currentTarget).val($(event.currentTarget).val().replace(',', '.').replace(/[^0-9\.-]/, ''));
             });
 
-            $("select[name='ad']").trigger('change');
+            {% if sensor and sensor.ad %}
+                $("select[name='ad']").val("{{ sensor.ad }}")
+            {% endif %}            
 
-            {% if sensor and sensor.pin %}$("select[name='pin']").val("{{ sensor.pin }}"){% endif %}
+            {% if sensor and sensor.io %}
+                $("select[name='io']").val("{{ sensor.io }}")
+            {% endif %}
+
+            $("select[name='io']").trigger('change');
+
+            {% if sensor and sensor.pin %}
+                $("select[name='pin']").val("{{ sensor.pin }}")
+            {% endif %}
 
             utils.validateForm('sensor-form', []);
 

@@ -9,6 +9,7 @@ import requests
 
 from app.arduino.gateway import GatewayInteractor
 from app.arduino.sensor import Sensor, SensorInteractor
+from app.arduino.common import Pin, PinInteractor
 
 from app.helpers import request_helper
 
@@ -39,6 +40,20 @@ def store_sensor():
         if request.form.get('is_active'):
             activate_sensor(sensor.id)
 
+            pin = PinInteractor.get(request.form['pin'])
+            if not pin:
+                pin = Pin()
+                pin.pin = request.form['pin']
+            pin.last_io = request.form['io']
+            pin.save()
+
+            r = request_helper.change_pin_mode(request.form['pin'], request.form['io'])
+
+            if r!= False:
+                flash("Pin %s mode successfully changed to %s!" % (request.form['pin'], request.form['io']), category={'theme' : 'success'} )
+            else:
+                flash("Pin mode could not be changed!", category={'theme': 'error'})
+        
         flash("Sensor added!", category={ 'theme': 'success' } )
         if (request.form.get('register')):
             return redirect("/sensors/%d/register/" % sensor.id)
@@ -67,7 +82,7 @@ def update_sensor(sensor_id):
                 for gateway in gateways:
                     request_helper.delete_sensor(gateway.address, gateway.post_authorization, old_sensor.identificator)
 
-        for (key, value) in request.form.iteritems():
+        for (key, value) in request.form.iteritems():            
             if key not in ['is_active', 'register', 'write', 'toggle']:
                 setattr(old_sensor, key, value.lower().replace(" ", "_") if key=="identificator" else value.replace(" ", "_"))
 
@@ -78,6 +93,20 @@ def update_sensor(sensor_id):
 
         if request.form.get('is_active'):
             activate_sensor(sensor_id)
+
+            pin = PinInteractor.get(request.form['pin'])
+            if not pin:
+                pin = Pin()
+                pin.pin = request.form['pin']
+            pin.last_io = request.form['io']
+            pin.save()
+
+            r = request_helper.change_pin_mode(request.form['pin'], request.form['io'])
+
+            if r!= False:
+                flash("Pin %s mode successfully changed to %s!" % (request.form['pin'], request.form['io']), category={'theme' : 'success'} )
+            else:
+                flash("Pin mode could not be changed!", category={'theme': 'error'})
         else:
             deactivate_sensor(sensor_id)
 

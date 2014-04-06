@@ -12,7 +12,9 @@ class Sensor(db.Model):
     toggle = db.Column(db.Boolean, default=False)
     identificator = db.Column(db.String(100), unique=True)
     active = db.Column(db.Boolean, default=False)
-    pin = db.Column(db.String(3), default="A0")
+    pin = db.Column(db.String(3), default="D13")
+    io = db.Column(db.String(10), default="output")
+    ad = db.Column(db.String(10), default="digital")
     threshold = db.Column(db.Float, default=0.0)
 
     def __str__(self):
