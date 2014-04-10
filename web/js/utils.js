@@ -1,5 +1,30 @@
 var utils = {
 
+    checkPin: function(pin, identificator, callback){
+        var fail = true;
+        if (identificator && identificator != ""){
+            fail = false
+            $.ajax({
+                url: "/check_pin/" + identificator + "/" + pin + "/",
+                dataType: "json",
+                success: function(data){
+                    $("#pin-modal .modal-body .list").empty();
+                    if (Object.keys(data).length > 0){
+                        for (var key in data) {
+                            $("<div/>", {"style": "font-size: 1.2em; font-weight: bold;"}).html(data[key]).appendTo("#pin-modal .modal-body .list");
+                        }
+                        $("#pin-modal").modal('show');
+                        fail = true;
+                    }
+                    else{
+                        callback();
+                    }
+                }
+            });
+        }
+        return fail;
+    },
+
     flashMessage : function(message, options){
         options = JSON.parse(options);
 

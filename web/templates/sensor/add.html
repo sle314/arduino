@@ -70,25 +70,7 @@
                                 {% endif %}
                             </button>
                         </div>
-                        <div class="modal fade" id="pin-modal">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                        <h4 class="modal-title">Active sensors on pin</h4>
-                                    </div>
-                                    <div class="modal-body">
-                                        <p>The following sensors will be deactivated:</p>
-                                        <div class="list">
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer center">
-                                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                        <button type="submit" class="btn btn-primary">Proceed</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        {% include "/sensor/modals/pin_modal.html" %}
                     </form>
                 </div>
             </div>
@@ -99,40 +81,21 @@
 {% block includes %}
     <script type="text/javascript">
 
-
-
         $(document).ready(function(){
 
-            function checkPin(){
+            $(".submit-sensor").on('click', function(){
+
                 if ($("input[name='is_active']").is(":checked")){
                     pin = $("select[name='pin']").val();
                     identificator = $("input[name='identificator']").val();
-                    if (identificator != ""){
-                        $.ajax({
-                            url: "/check_pin/" + identificator + "/" + pin + "/",
-                            dataType: "json",
-                            success: function(data){
-                                $("#pin-modal .modal-body .list").empty();
-                                if (Object.keys(data).length > 0){
-                                    for (var key in data) {
-                                        $("<div/>", {"style": "font-size: 1.2em; font-weight: bold;"}).html(data[key]).appendTo("#pin-modal .modal-body .list");
-                                    }
-                                    $("#pin-modal").modal('show');
-
-                                }
-                                else{
-                                    $("#sensor-form").submit();
-                                }
-                            }
-                        });
-                    }
+                    utils.checkPin(pin, identificator, function(){$("#sensor-form").submit()});
                 }
                 else{
                     $("#sensor-form").submit();
                 }
-            }
 
-            $(".submit-sensor").on('click', checkPin)
+            });
+
             $("#navbar-collapse li#add-sensor").addClass("active")
 
             $("select[name='io']")

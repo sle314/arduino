@@ -7,7 +7,7 @@ from flask import render_template, request, make_response
 from app.arduino.gateway import GatewayInteractor
 from app.arduino.sensor import SensorInteractor
 
-from app.helpers.request_helper import get_sensor_values, send_sensor_value
+from app.helpers import request_helper
 
 from flask import json, jsonify
 
@@ -35,7 +35,7 @@ def check_pin(identificator, pin):
 
 @app.route('/cron/')
 def cron():
-    values = get_sensor_values()
+    values = request_helper.get_sensor_values()
 
     for gateway in GatewayInteractor.get_all_device_registered():
         for sensor in SensorInteractor.get_all_active():
@@ -54,7 +54,7 @@ def cron():
 
             sensor.save()
             if ( not check ):
-                send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor.value)
+                request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor.value)
     return make_response()
 
 
@@ -71,10 +71,17 @@ def ip_cron():
         ip.address = currentIP
         ip.save()
         for gateway in GatewayInteractor.get_all_device_registered():
-            request_helper.delete_device(gateway.address, gateway.post_authorization)
-            request_helper.init_device(gateway.address, gateway.post_authorization)
-            request_helper.init_descriptor(gateway.address, gateway.post_authorization)
-            request_helper.send_descriptor(gateway.address, gateway.post_authorization)
+            r = request_helper.delete_device(gateway.address, gateway.post_authorization)
+            print "Delete dev: %d" % r.status_code
+            r = request_helper.init_device(gateway.address, gateway.post_authorization)
+            print "Init dev: %d" % r.status_code
+            r = request_helper.init_descriptor(gateway.address, gateway.post_authorization)
+            print "Init descriptor: %d" % r.status_code
+            r = request_helper.send_descriptor(gateway.address, gateway.post_authorization)
+            print "Descriptor: %d" % r.status_code
             for sensor in SensorInteractor.get_all_active():
-                request_helper.init_sensor(gateway.address, gateway.post_authorization, sensor.identificator)
+                r = request_helper.delete_sensor(gateway.address, gateway.post_authorization, sensor.identificator)
+                print "Delete sensor: %d" % r.status_code
+                r = request_helper.init_sensor(gateway.address, gateway.post_authorization, sensor.identificator)
+                print "Init sensor: %d" % r.status_code
     return make_response()

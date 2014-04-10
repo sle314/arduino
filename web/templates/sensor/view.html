@@ -6,14 +6,14 @@
 {% if sensors %}
     <div class="row center-row sensors center">
         {% for sensor in sensors %}
-            <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 sensor center-col">
+            <div data-id="{{ sensor.id }}" class="col-xs-12 col-sm-6 col-md-4 col-lg-3 sensor center-col">
                 <div class="box sensor">
                     <div class="row">
                         <div class="sensor-id col-xs-12 left"><a name="{{ sensor.id }}"></a></div>
                         <div class="col-xs-12">
                             <table class="info-table">
                                 <tr>
-                                    <td colspan="2" class="center sensor-identificator"><b>{{sensor.identificator}}</b></td>
+                                    <td data-value="{{ sensor.identificator }}" colspan="2" class="center sensor-identificator"><b>{{sensor.identificator}}</b></td>
                                 </tr>
                                 <tr>
                                     <td colspan="2" class="center sensor-activity">{% if sensor.active %}<span class="sensor-active">active</span>{% else %}<span class="sensor-inactive">inactive</span>{% endif %}</td>
@@ -23,21 +23,16 @@
                                     <td class="left"><b>{{sensor.type}}</b></td>
                                 </tr>
                                 <tr>
+                                    <td class="right">Mode:</td>
+                                    <td class="left"><b>{{sensor.ad}} {{sensor.io}}</b></td>
+                                </tr>
+                                <tr>
                                     <td class="right">Pin:</td>
-                                    <td class="left"><b>{{sensor.pin}}</b></td>
+                                    <td data-value="{{ sensor.pin }}" class="left sensor-pin"><b>{{sensor.pin}}</b></td>
                                 </tr>
                                 <tr>
                                     <td class="right">Last value:</td>
                                     <td class="left"><b>{{sensor.value}} {{sensor.unit}}</b></td>
-                                </tr>
-                                <tr>
-                                    {% if sensor.pin[0] == "A" %}
-                                        <td class="right">Threshold:</td>
-                                        <td class="left"><b>{{sensor.threshold}}</b></td>
-                                    {% else %}
-                                        <td>&nbsp;</td>
-                                        <td>&nbsp;</td>
-                                    {% endif %}
                                 </tr>
                             </table>
                         </div>
@@ -46,7 +41,7 @@
                         <div class="middle-buttons center-col">
                             <div class="col-xs-3">
                                 {% if not sensor.active %}
-                                    <a title="activate" href="/sensors/{{ sensor.id }}/activate/" class="btn btn-sm btn-success" ><span class="glyphicon glyphicon-ok"></span></a>
+                                    <a title="activate" href="/sensors/{{ sensor.id }}/activate/" class="activate btn btn-sm btn-success" ><span class="glyphicon glyphicon-ok"></span></a>
                                 {% else %}
                                     <a title="deactivate" href="/sensors/{{ sensor.id }}/deactivate/" class="btn btn-sm btn-danger" ><span class="glyphicon glyphicon-remove"></span></a>
                                 {% endif %}
@@ -99,4 +94,24 @@
             </div>
         {% endfor %}
     </div>
+    {% include "/sensor/modals/pin_modal.html" %}
 {% endif %}
+
+{% block includes %}
+    <script type="text/javascript">
+        $(document).ready(function(){
+
+            $("a.activate").on('click', function(event){
+                console.log($(event.currentTarget).parents(".sensor"));
+                var id = $(event.currentTarget).parents(".sensor").attr("data-id");
+                var pin = $(event.currentTarget).parents(".sensor").find("sensor-pin").attr("data-value");
+                var identificator = $(event.currentTarget).parents(".sensor").find("sensor-identificator").attr("data-value");
+                console.log(id+pin+identificator);
+                if (utils.checkPin(pin, identificator, function(){window.location = "/sensors/" + id + "/activate/";})){
+                    return false;
+                }
+
+            });
+        });
+    </script>
+{% endblock %}

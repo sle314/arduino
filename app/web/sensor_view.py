@@ -39,11 +39,6 @@ def store_sensor():
 
         if request.form.get('is_active'):
 
-            sensors = SensorInteractor.get_active_for_pin(request.form['pin'])
-            if sensors:
-                for sensor_on_pin in sensors:
-                    deactivate_sensor(sensor_on_pin.id)
-
             activate_sensor(sensor.id)
 
             pin = PinInteractor.get(request.form['pin'])
@@ -100,11 +95,6 @@ def update_sensor(sensor_id):
         old_sensor.save()
 
         if request.form.get('is_active'):
-
-            sensors = SensorInteractor.get_active_for_pin(request.form['pin'])
-            if sensors:
-                for sensor_on_pin in sensors:
-                    deactivate_sensor(sensor_on_pin.id)
 
             activate_sensor(sensor_id)
 
@@ -221,7 +211,7 @@ def sensor_send_value(sensor_id):
     return redirect("/sensors/")
 
 
-@app.route('/retargeting1/sensors/<identificator>/toggle/')
+@app.route('/retargeting1/sensors/<identificator>/toggle/', methods = ['POST'])
 def retargeting_sensor_toggle(identificator):
     sensor = SensorInteractor.get_by_identificator(identificator)
 
@@ -269,6 +259,10 @@ def sensor_toggle(sensor_id):
 @app.route('/sensors/<int:sensor_id>/activate/')
 def activate_sensor(sensor_id):
     sensor = SensorInteractor.get(sensor_id)
+    sensors = SensorInteractor.get_active_for_pin(sensor.pin)
+    if sensors:
+        for sensor_on_pin in sensors:
+            deactivate_sensor(sensor_on_pin.id)
     if sensor:
         sensor.active = True
         sensor.save()
