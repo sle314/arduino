@@ -32,6 +32,6 @@ logger.setLevel(logging.INFO)
 app.logger.addHandler(logger)
 app.logger.setLevel(logging.INFO)
 
-from common_view import *
-from sensor_view import *
-from gateway_view import *
+from app.web.common_view import *
+from app.web.sensor_view import *
+from app.web.gateway_view import *

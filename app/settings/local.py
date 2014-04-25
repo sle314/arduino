@@ -30,3 +30,222 @@ DEVICE_ID = "Arduino"
 # DEVICE_ID = "APP_00137a0000005d98.1"
 
 MAX_NR_VALUES = 20
+
+HARDWARE = [
+    {
+        'name': 'TinkerKit!',
+        'path': 'tinkerkit',
+        'modules': [
+            {
+                'name': 'Thermistor',
+                'path': 'thermistor',
+                'type': 'Temperature',
+                'io': 'input',
+                'ad': 'analog',
+                'methods': [
+                    {
+                        'name': 'Read analog value',
+                        'path': 'read',
+                        'type': 'read',
+                        'unit': None
+                    },
+                    {
+                        'name': 'Read Celsius',
+                        'path': 'read_celsius',
+                        'type': 'read',
+                        'unit': 'C'
+                    },
+                    {
+                        'name': 'Read Fahrenheit',
+                        'path': 'read_fahrenheit',
+                        'type': 'read',
+                        'unit': 'F'
+                    }
+                ]
+            },
+            {
+                'name': 'LED',
+                'path': 'led',
+                'type': 'LED',
+                'io': 'output',
+                'ad': 'analog',
+                'methods': [
+                    {
+                        'name': 'Turn on',
+                        'path': 'on',
+                        'type': 'call',
+                        'unit': None
+                    },
+                    {
+                        'name': 'Turn off',
+                        'path': 'off',
+                        'type': 'call',
+                        'unit': None
+                    },
+                    {
+                        'name': 'Get state',
+                        'path': 'state',
+                        'type': 'read',
+                        'unit': None
+                    },
+                    {
+                        'name': 'Adjust brightness',
+                        'path': 'brightness',
+                        'type': 'write',
+                        'unit': None
+                    }
+                ]
+            }
+        ],
+        'pins': [
+            { 'pin': 'I0', 'arduino_pin': 'A0', 'io': 'input', 'ad': 'analog' },
+            { 'pin': 'I1', 'arduino_pin': 'A1', 'io': 'input', 'ad': 'analog' },
+            { 'pin': 'I2', 'arduino_pin': 'A2', 'io': 'input', 'ad': 'analog' },
+            { 'pin': 'I3', 'arduino_pin': 'A3', 'io': 'input', 'ad': 'analog' },
+            { 'pin': 'I4', 'arduino_pin': 'A4', 'io': 'input', 'ad': 'analog' },
+            { 'pin': 'I5', 'arduino_pin': 'A5', 'io': 'input', 'ad': 'analog' },
+
+            { 'pin': 'O0', 'arduino_pin': 'D11', 'io': 'output', 'ad': 'analog' },
+            { 'pin': 'O1', 'arduino_pin': 'D10', 'io': 'output', 'ad': 'analog' },
+            { 'pin': 'O2', 'arduino_pin': 'D9', 'io': 'output', 'ad': 'analog' },
+            { 'pin': 'O3', 'arduino_pin': 'D6', 'io': 'output', 'ad': 'analog' },
+            { 'pin': 'O4', 'arduino_pin': 'D5', 'io': 'output', 'ad': 'analog' },
+            { 'pin': 'O5', 'arduino_pin': 'D3', 'io': 'output', 'ad': 'analog' },
+        ]
+
+    },
+
+    {
+        'name': 'Arduino Yun',
+        'path': 'yun',
+        'modules': [
+            {
+                'name': 'digital in',
+                'path': 'digital',
+                'type': None,
+                'io': 'input',
+                'ad': 'digital',
+                'methods': [
+                    {
+                        'name': 'Read value',
+                        'path': 'read',
+                        'type': 'read',
+                        'unit': None
+                    }
+                ]
+            },
+            {
+                'name': 'digital out',
+                'path': 'digital',
+                'type': None,
+                'io': 'output',
+                'ad': 'digital',
+                'methods': [
+                    {
+                        'name': 'Read value',
+                        'path': 'read',
+                        'type': 'read',
+                        'unit': None
+                    },
+                    {
+                        'name': 'Write value',
+                        'path': 'write',
+                        'type': 'write',
+                        'unit': None
+                    },
+                    {
+                        'name': 'Toggle value',
+                        'path': 'toggle',
+                        'type': 'call',
+                        'unit': None
+                    }
+                ]
+            },
+            {
+                'name': 'analog out',
+                'path': 'analog',
+                'type': None,
+                'io': 'output',
+                'ad': 'analog',
+                'methods': [
+                    {
+                        'name': 'Read value',
+                        'path': 'read',
+                        'type': 'read',
+                        'unit': None
+                    },
+                    {
+                        'name': 'Write value',
+                        'path': 'write',
+                        'type': 'write',
+                        'unit': None
+                    }
+                ]
+            },
+            {
+                'name': 'analog in',
+                'path': 'analog',
+                'type': None,
+                'io': 'input',
+                'ad': 'analog',
+                'methods': [
+                    {
+                        'name': 'Read value',
+                        'path': 'read',
+                        'type': 'read',
+                        'unit': None
+                    }
+                ]
+            }
+        ],
+        'pins': [
+            { 'pin': 'A0', 'arduino_pin': 'A0', 'io': 'input', 'ad': 'analog' },
+            { 'pin': 'A1', 'arduino_pin': 'A1', 'io': 'input', 'ad': 'analog' },
+            { 'pin': 'A2', 'arduino_pin': 'A2', 'io': 'input', 'ad': 'analog' },
+            { 'pin': 'A3', 'arduino_pin': 'A3', 'io': 'input', 'ad': 'analog' },
+            { 'pin': 'A4', 'arduino_pin': 'A4', 'io': 'input', 'ad': 'analog' },
+            { 'pin': 'A5', 'arduino_pin': 'A5', 'io': 'input', 'ad': 'analog' },
+
+            { 'pin': 'A0', 'arduino_pin': 'A0', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'A1', 'arduino_pin': 'A1', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'A2', 'arduino_pin': 'A2', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'A3', 'arduino_pin': 'A3', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'A4', 'arduino_pin': 'A4', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'A5', 'arduino_pin': 'A5', 'io': 'input', 'ad': 'digital' },
+
+            { 'pin': 'D2', 'arduino_pin': 'D2', 'io': 'output', 'ad': 'digital' },
+            { 'pin': 'D3', 'arduino_pin': 'D3', 'io': 'output', 'ad': 'digital' },
+            { 'pin': 'D4', 'arduino_pin': 'D4', 'io': 'output', 'ad': 'digital' },
+            { 'pin': 'D5', 'arduino_pin': 'D5', 'io': 'output', 'ad': 'digital' },
+            { 'pin': 'D6', 'arduino_pin': 'D2', 'io': 'output', 'ad': 'digital' },
+            { 'pin': 'D7', 'arduino_pin': 'D3', 'io': 'output', 'ad': 'digital' },
+            { 'pin': 'D8', 'arduino_pin': 'D4', 'io': 'output', 'ad': 'digital' },
+            { 'pin': 'D9', 'arduino_pin': 'D5', 'io': 'output', 'ad': 'digital' },
+            { 'pin': 'D10', 'arduino_pin': 'D2', 'io': 'output', 'ad': 'digital' },
+            { 'pin': 'D11', 'arduino_pin': 'D3', 'io': 'output', 'ad': 'digital' },
+            { 'pin': 'D12', 'arduino_pin': 'D4', 'io': 'output', 'ad': 'digital' },
+            { 'pin': 'D13', 'arduino_pin': 'D5', 'io': 'output', 'ad': 'digital' },
+
+            { 'pin': 'D2', 'arduino_pin': 'D2', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'D3', 'arduino_pin': 'D3', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'D4', 'arduino_pin': 'D4', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'D5', 'arduino_pin': 'D5', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'D6', 'arduino_pin': 'D2', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'D7', 'arduino_pin': 'D3', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'D8', 'arduino_pin': 'D4', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'D9', 'arduino_pin': 'D5', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'D10', 'arduino_pin': 'D2', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'D11', 'arduino_pin': 'D3', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'D12', 'arduino_pin': 'D4', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'D13', 'arduino_pin': 'D5', 'io': 'input', 'ad': 'digital' },
+
+            { 'pin': 'D3', 'arduino_pin': 'D3', 'io': 'output', 'ad': 'analog' },
+            { 'pin': 'D5', 'arduino_pin': 'D5', 'io': 'output', 'ad': 'analog' },
+            { 'pin': 'D6', 'arduino_pin': 'D2', 'io': 'output', 'ad': 'analog' },
+            { 'pin': 'D9', 'arduino_pin': 'D5', 'io': 'output', 'ad': 'analog' },
+            { 'pin': 'D10', 'arduino_pin': 'D2', 'io': 'output', 'ad': 'analog' },
+            { 'pin': 'D11', 'arduino_pin': 'D3', 'io': 'output', 'ad': 'analog' }
+        ]
+
+    }
+]

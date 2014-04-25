@@ -6,10 +6,10 @@
 {% if sensors %}
     <div class="row center-row sensors center">
         {% for sensor in sensors %}
-            <div data-id="{{ sensor.id }}" class="col-xs-12 col-sm-6 col-md-4 col-lg-3 sensor center-col">
-                <div class="box sensor">
+            <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 sensor-wrapper center-col">
+                <div data-id="{{ sensor.id }}" class="box sensor">
                     <div class="row">
-                        <div class="sensor-id col-xs-12 left"><a name="{{ sensor.id }}"></a></div>
+                        <div class="sensor-id col-xs-12 left"><a name="{{ sensor.identificator }}"></a></div>
                         <div class="col-xs-12">
                             <table class="info-table">
                                 <tr>
@@ -20,49 +20,51 @@
                                 </tr>
                                 <tr>
                                     <td class="right">Type:</td>
-                                    <td class="left"><b>{{sensor.type}}</b></td>
+                                    <td class="left"><b>{% if sensor.module.type %}{{sensor.module.type}}{% else %}{{ sensor.type }}{% endif %}</b></td>
                                 </tr>
                                 <tr>
-                                    <td class="right">Mode:</td>
-                                    <td class="left"><b>{{sensor.ad}} {{sensor.io}}</b></td>
+                                    <td class="right">Hardware:</td>
+                                    <td class="left"><b>{{sensor.module.hardware.name}}</b></td>
+                                </tr>
+                                <tr>
+                                    <td class="right">Module:</td>
+                                    <td class="left"><b>{{sensor.module.name}}</b></td>
                                 </tr>
                                 <tr>
                                     <td class="right">Pin:</td>
-                                    <td data-value="{{ sensor.pin }}" class="left sensor-pin"><b>{{sensor.pin}}</b></td>
-                                </tr>
-                                <tr>
-                                    <td class="right">Last value:</td>
-                                    <td class="left"><b>{{sensor.value}} {{sensor.unit}}</b></td>
+                                    <td data-value="{{ sensor.pin.arduino_pin }}" class="left sensor-pin"><b>{{sensor.pin.pin}}</b></td>
                                 </tr>
                             </table>
                         </div>
                     </div>
                     <div class="row center-row">
                         <div class="middle-buttons center-col">
-                            <div class="col-xs-3">
+                            <div class="col-xs-3 center-col">
                                 {% if not sensor.active %}
-                                    <a title="activate" href="/sensors/{{ sensor.id }}/activate/" class="activate btn btn-sm btn-success" ><span class="glyphicon glyphicon-ok"></span></a>
+                                    <a title="activate" href="#" class="activate btn btn-sm btn-success" ><span class="glyphicon glyphicon-ok"></span></a>
                                 {% else %}
                                     <a title="deactivate" href="/sensors/{{ sensor.id }}/deactivate/" class="btn btn-sm btn-danger" ><span class="glyphicon glyphicon-remove"></span></a>
                                 {% endif %}
                             </div>
-                            {% if sensor.io == "input" %}
-                                <div class="col-xs-3">
-                                   <a title="get and send value to gateway" href="/sensors/{{ sensor.id }}/send_value/" class="btn btn-sm btn-info" {% if not sensor.active %}disabled{% endif %}><span class="glyphicon glyphicon-floppy-open"></span></a>
-                                </div>
-                            {% elif sensor.ad == "digital" and sensor.toggle %}
-                                <div class="col-xs-3">
-                                   <a title="toggle" href="/sensors/{{ sensor.id }}/toggle/" class="btn btn-sm btn-info" {% if not sensor.active %}disabled{% endif %}><span class="glyphicon glyphicon-refresh"></span></a>
-                                </div>
-                            {% else %}
-                                <div class="col-xs-3">
-                                   <button title="write to actuator" data-href="/sensors/{{ sensor.id }}/write/" class="write btn btn-sm btn-info" {% if not sensor.active %}disabled{% endif %}><span class="glyphicon glyphicon-upload"></span></button>
-                                </div>
+                            {% if sensor.module.hardware.path == "yun" %}
+                                {% if sensor.module.io == "input" %}
+                                    <div class="col-xs-3 center-col">
+                                       <a title="get and send value to gateway" href="/sensors/{{ sensor.id }}/send_value/" class="btn btn-sm btn-info" {% if not sensor.active %}disabled{% endif %}><span class="glyphicon glyphicon-floppy-open"></span></a>
+                                    </div>
+                                {% elif sensor.module.ad == "digital" %}
+                                    <div class="col-xs-3 center-col">
+                                       <a title="toggle" href="/sensors/{{ sensor.id }}/toggle/" class="btn btn-sm btn-info" {% if not sensor.active %}disabled{% endif %}><span class="glyphicon glyphicon-refresh"></span></a>
+                                    </div>
+                                {% else %}
+                                    <div class="col-xs-3 center-col">
+                                       <button title="write to actuator" data-href="/sensors/{{ sensor.id }}/write/" class="write btn btn-sm btn-info" {% if not sensor.active %}disabled{% endif %}><span class="glyphicon glyphicon-upload"></span></button>
+                                    </div>
+                                {% endif %}
                             {% endif %}
-                            <div class="col-xs-3">
+                            <div class="col-xs-3 center-col">
                                 <a title="edit" class="btn btn-sm btn-info" href="/sensors/{{sensor.id}}/edit/"><span class="glyphicon glyphicon-pencil"></span></a>
                             </div>
-                            <div class="col-xs-3">
+                            <div class="col-xs-3 center-col">
                                 <form method="POST" action="/sensors/delete/">
                                     <input type="hidden" name="sensor_id" value="{{ sensor.id }}" />
                                     <button title="delete" class="btn btn-sm btn-danger" type="submit"><span class="glyphicon glyphicon-trash"></span></button>
@@ -70,29 +72,35 @@
                             </div>
                         </div>
                     </div>
-                    <div class="modal fade write-modal">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <form method="POST" action="/sensors/write/">
-                                    <div class="modal-header">
-                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                        <h4 class="modal-title">Write value to sensor</h4>
-                                    </div>
-                                    <div class="modal-body">
-                                       <input name="sensor_id" type="hidden" value="{{ sensor.id }}" />
-                                       <input class="form-control" value="{{ sensor.value }}" name="value" type="text" />
-                                    </div>
-                                    <div class="modal-footer center">
-                                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                        <button type="submit" class="btn btn-primary">Submit</button>
-                                    </div>
-                                </form>
+                    <div class="row methods">
+                        {% for method in sensor.module.methods %}
+                            <div class="col-xs-12">
+                                <a data-module="{{ sensor.module_id }}" data-method="{{ method.id }}" class="{{ method.type }}"
+                                data-href="/{{ sensor.module.hardware.path }}/{{ sensor.module.path }}/{{ method.path }}/{{ sensor.pin.pin }}"
+                                href="#">{{ method.name }}</a>{% if method.type == 'read' %} - <span class="method-value">{{ method.value }}</span>&nbsp;{% if method.unit %}{{ method.unit }}{% endif %}{% endif %}
                             </div>
-                        </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
         {% endfor %}
+        <div class="modal fade write-modal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                            <h4 class="modal-title">Write value for sensor method</h4>
+                        </div>
+                        <div class="modal-body">
+                           <input class="form-control" value="" name="value" type="text" />
+                        </div>
+                        <div class="modal-footer center">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" id="method-write-submit">Submit</button>
+                        </div>
+                </div>
+            </div>
+        </div>
     </div>
     {% include "/sensor/modals/pin_modal.html" %}
 {% endif %}
@@ -102,15 +110,69 @@
         $(document).ready(function(){
 
             $("a.activate").on('click', function(event){
-                console.log($(event.currentTarget).parents(".sensor"));
-                var id = $(event.currentTarget).parents(".sensor").attr("data-id");
-                var pin = $(event.currentTarget).parents(".sensor").find("sensor-pin").attr("data-value");
-                var identificator = $(event.currentTarget).parents(".sensor").find("sensor-identificator").attr("data-value");
-                console.log(id+pin+identificator);
-                if (utils.checkPin(pin, identificator, function(){window.location = "/sensors/" + id + "/activate/";})){
-                    return false;
-                }
+                var id = $(event.currentTarget).parents(".sensor").data("id");
+                var pin = $(event.currentTarget).parents(".sensor").find(".sensor-pin").data("value");
+                var identificator = $(event.currentTarget).parents(".sensor").find(".sensor-identificator").data("value");
+                utils.checkPin(pin, identificator, function(){ window.location = "/sensors/" + id + "/activate/" });
 
+                $("#pin-modal-proceed").unbind('click');
+                $("#pin-modal-proceed").on('click', function(){
+                    window.location = "/sensors/" + id + "/activate/";
+                });
+                return false;
+            });
+
+            $("a.read, a.call").on('click', function(event){
+
+                var path = $(event.currentTarget).data("href");
+                var module_id = $(event.currentTarget).data("module");
+                var method_id = $(event.currentTarget).data("method");
+
+                $.ajax({
+                    url: "/modules/" + module_id + "/methods/" + method_id + "/invoke/",
+                    type: "POST",
+                    data: { path : path },
+                    success: function(data){
+                        $(event.currentTarget).siblings("span.method-value").html(data['value']);
+                    }
+                });
+
+                return false;
+            });
+
+
+            $("a.write").on('click', function(event){
+                $(".write-modal").modal("show");
+
+                var target = event.currentTarget;
+                var module_id = $(target).data("module");
+                var method_id = $(target).data("method");
+
+                $("#method-write-submit").on('click', function(event){
+                    var val = $("input[name='value']").val();
+
+                    if (val == ""){
+                        utils.flashMessage("Please enter a value", '{ "theme" : "error" }');
+                        $("input[name='value']").parents(".form-group").addClass("has-error");
+                        $("input[name='value']").focus();
+                        return false;
+                    }
+                    else{
+                        var path = $(target).data("href") + "/" + val;
+                        console.log(path);
+                        // return false;
+                        $.ajax({
+                            url: "/modules/" + module_id + "/methods/" + method_id + "/invoke/",
+                            type: "POST",
+                            data: { path : path },
+                            success: function(data){
+                                console.log(data);
+                            }
+                        });
+                    }
+
+                });
+                return false;
             });
         });
     </script>

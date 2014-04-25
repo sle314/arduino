@@ -1,0 +1,3 @@
+{% for pin in pins %}
+    <option value="{{ pin.id }}" data-arduino-pin="{{ pin.arduino_pin }}">{{ pin.pin }}</option>
+{% endfor %}

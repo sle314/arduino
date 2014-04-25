@@ -92,6 +92,10 @@ div.jGrowl div.success{
     float: none;
 }
 
+.sensors .sensor{
+    min-height: 400px;
+}
+
 .sensors .sensor-id{
     position: absolute;
     top: 5px;
@@ -132,5 +136,9 @@ div.jGrowl div.success{
 }
 
 .sensors .sensor .bottom-buttons{
+    margin-top: 20px;
+}
+
+.sensors .sensor .methods{
     margin-top: 20px;
 }

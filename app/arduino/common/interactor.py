@@ -1,16 +1,4 @@
-from app.arduino.common.models import Public_IP, Pin
-from app.web import db
-
-class PinInteractor:
-
-	@staticmethod
-	def get(pin):
-		pin = Pin.query.filter(pin == pin).first()
-		return pin
-
-	@staticmethod
-	def get_all():
-		return Pin.query.all()
+from app.arduino.common.models import Public_IP
 
 
 class PublicIPInteractor:

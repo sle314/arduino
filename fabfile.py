@@ -28,15 +28,44 @@ def start(port=None):
         app.run(host="0.0.0.0", port=int(port), debug=settings.DEBUG)
     else:
         app.run(host="0.0.0.0", debug=settings.DEBUG)
-    
+
     from app.helpers.request_helper import init_pin_modes
     init_pin_modes()
 
 
 def create_db():
+    """ Stvara bazu podataka """
     from app.web import db
     db.create_all()
 
 def drop_db():
+    """ Brise bazu podataka """
     from app.web import db
     db.drop_all()
+
+def init_db():
+    """
+    inicijalizira bazu podataka
+    prije koristenja potrebno je zakomentirati zadnje tri linije u datoteci app/web/__init__.py
+    """
+    from app.arduino.hardware import Hardware, Module, Pin, Method
+
+    for h in settings.HARDWARE:
+        hw = Hardware(h['name'], h['path'])
+        hw.save()
+
+        for module in h['modules']:
+            module['hw_id'] = hw.id
+            m = Module( module )
+            m.save()
+
+            for method in module['methods']:
+                method['mod_id'] = m.id
+                meth = Method( method )
+                meth.save()
+
+        for pin in h['pins']:
+            pin['hw_id'] = hw.id
+            p = Pin( pin )
+            p.save()
+

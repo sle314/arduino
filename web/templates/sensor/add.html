@@ -6,21 +6,15 @@
             <div class="box">
                 <div class="row">
                     <form class="form" id="sensor-form" action="/sensors/{% if sensor and sensor.id %}{{sensor.id}}/{% endif %}" method="POST">
-                        <div class="col-xs-12 form-group">
-                            <label class="control-label" for="io">Input/output:</label>
-                            <select class="form-control" name="io">
-                                <option value="input">Input</option>
-                                <option value="output">Output</option>
+                        <div class="col-xs-8 form-group">
+                            <label class="control-label" for="module">Module:</label>
+                            <select class="form-control" name="module">
+                                {% for module in modules %}
+                                    <option value="{{ module.id }}" data-type="{{ module.type }}">{{ module.hardware.name }} - {{ module.name }}</option>
+                                {% endfor %}
                             </select>
                         </div>
-                        <div class="col-xs-7 form-group">
-                            <label class="control-label" for="ad">Digital/analog:</label>
-                            <select class="form-control" name="ad">
-                                <option value="digital">Digital</option>
-                                <option value="analog">Analog</option>
-                            </select>
-                        </div>
-                        <div class="col-xs-5 form-group">
+                        <div class="col-xs-4 form-group">
                             <label class="control-label" for="pin">Pin:</label>
                             <select class="form-control" name="pin">
                             </select>
@@ -31,32 +25,16 @@
                         </div>
                         <div class="col-xs-12 form-group">
                             <label class="control-label" for="type">Type:</label>
-                            <input class="form-control" name="type" type="text" value="{% if sensor %}{{sensor.type}}{% endif %}"/>
-                        </div>
-                        <div class="col-xs-12 form-group">
-                            <label class="control-label" for="min_value">Minimum value:</label>
-                            <input class="form-control" name="min_value" type="text" value="{% if sensor %}{{sensor.min_value}}{% else %}0{% endif %}"/>
-                        </div>
-                        <div class="col-xs-12 form-group">
-                            <label class="control-label" for="max_value">Maximum value:</label>
-                            <input class="form-control" name="max_value" type="text" value="{% if sensor %}{{sensor.max_value}}{% else %}1{% endif %}"/>
-                        </div>
-                        <div class="col-xs-12 form-group">
-                            <label class="control-label" for="unit">Unit:</label>
-                            <input class="form-control" name="unit" type="text" value="{% if sensor %}{{sensor.unit}}{% endif %}"/>
-                        </div>
-                        <div class="col-xs-12 form-group">
-                            <label class="control-label" for="threshold">Threshold:</label>
-                            <input class="form-control" name="threshold" type="text" value="{% if sensor %}{{sensor.threshold}}{% else %}1.0{% endif %}"/>
+                            <input class="form-control" name="type" type="text" value="{% if sensor and sensor.module.type == 'None' %}{{sensor.type}}{% endif %}"/>
                         </div>
                         <div class="col-xs-12 form-group center">
                             <p>
                                 <label class="checkbox-inline">
                                     <input type="checkbox" name="is_active" {% if sensor and sensor.active %}checked{% endif %} /> active
                                 </label>
-                                <label class="toggle checkbox-inline" style="display: none;">
+                                <!-- <label class="toggle checkbox-inline" style="display: none;">
                                     <input type="checkbox" name="toggle" {% if sensor and sensor.toggle %}checked{% endif %} /> toggleable
-                                </label>
+                                </label> -->
                             </p>
                         </div>
                         <div class="col-xs-12 center">
@@ -86,7 +64,7 @@
             $(".submit-sensor").on('click', function(){
 
                 if ($("input[name='is_active']").is(":checked")){
-                    pin = $("select[name='pin']").val();
+                    pin = $("select[name='pin'] option:selected").data("arduino-pin");
                     identificator = $("input[name='identificator']").val();
                     utils.checkPin(pin, identificator, function(){$("#sensor-form").submit()});
                 }
@@ -98,78 +76,78 @@
 
             $("#navbar-collapse li#add-sensor").addClass("active")
 
-            $("select[name='io']")
-            .on('change',
-                function(event){
-                    $("select[name='ad']").trigger("change");
-            });
-
-            $("select[name='ad']")
+            $("select[name='module']")
             .on('change',
                 function(event){
                     $("select[name='pin']").empty();
-                    if ($(event.currentTarget).val() == "digital"){
-                        $(".toggle").show();
-                        if($("select[name='io']").val() == "input"){
-                            $(".toggle").hide();
-                            $(".toggle input").attr("checked", false);
+                    var module_id = $(event.currentTarget).attr("value");
+                    var module_type = $('option:selected', $(event.currentTarget)).data("type");
+                    $.ajax({
+                        url: "/modules/" + module_id + "/pins/",
+                        success: function(data){
+                            $("select[name='pin']").html(data);
+                            {% if sensor and sensor.pin and module_id == sensor.module_id %}
+                                $("select[name='pin']").val("{{ sensor.pin.id }}");
+                            {% endif %}
                         }
-                        $("input[name='min_value'], input[name='max_value'], input[name='threshold'], input[name='unit']").attr("disabled", true);
-                        for (var i=2; i<14; i++){
-                            $("<option/>", {
-                                value: "D" + i,
-                            })
-                            .text("D" + i)
-                            .appendTo("select[name='pin']");
-                        }
+
+                    });
+                    $("input[name='type']").attr("disabled", false);
+                    if (module_type != "None"){
+                        $("input[name='type']").attr("disabled", true);
                     }
-                    else{
-                        $(".toggle").hide();
-                        $(".toggle input").attr("checked", false);
-                        if($("select[name='io']").val() == "input"){
-                            $("input[name='min_value'], input[name='max_value'], input[name='threshold'], input[name='unit']").attr("disabled", false);
-                            for (var i=0; i<6; i++){
-                                $("<option/>", {
-                                    value: "A" + i,
-                                })
-                                .text("A" + i)
-                                .appendTo("select[name='pin']");
-                            }
-                        }
-                        else{
-                            $("input[name='min_value'], input[name='max_value'], input[name='threshold'], input[name='unit']").attr("disabled", true);
-                            pins = ["D3", "D5", "D6", "D9", "D10", "D11"]
-                            for (var i=0; i<pins.length; i++){
-                                $("<option/>", {
-                                    value: pins[i],
-                                })
-                                .text(pins[i])
-                                .appendTo("select[name='pin']");
-                            }
-                        }
-                    }
-                    {% if sensor and sensor.pin %}
-                        $("select[name='pin']").val("{{ sensor.pin }}")
-                    {% endif %}
+                    // if ($(event.currentTarget).val() == "digital"){
+                    //     $(".toggle").show();
+                    //     if($("select[name='io']").val() == "input"){
+                    //         $(".toggle").hide();
+                    //         $(".toggle input").attr("checked", false);
+                    //     }
+                    //     $("input[name='min_value'], input[name='max_value'], input[name='threshold'], input[name='unit']").attr("disabled", true);
+                    //     for (var i=2; i<14; i++){
+                    //         $("<option/>", {
+                    //             value: "D" + i,
+                    //         })
+                    //         .text("D" + i)
+                    //         .appendTo("select[name='pin']");
+                    //     }
+                    // }
+                    // else{
+                    //     $(".toggle").hide();
+                    //     $(".toggle input").attr("checked", false);
+                    //     if($("select[name='io']").val() == "input"){
+                    //         $("input[name='min_value'], input[name='max_value'], input[name='threshold'], input[name='unit']").attr("disabled", false);
+                    //         for (var i=0; i<6; i++){
+                    //             $("<option/>", {
+                    //                 value: "A" + i,
+                    //             })
+                    //             .text("A" + i)
+                    //             .appendTo("select[name='pin']");
+                    //         }
+                    //     }
+                    //     else{
+                    //         $("input[name='min_value'], input[name='max_value'], input[name='threshold'], input[name='unit']").attr("disabled", true);
+                    //         pins = ["D3", "D5", "D6", "D9", "D10", "D11"]
+                    //         for (var i=0; i<pins.length; i++){
+                    //             $("<option/>", {
+                    //                 value: pins[i],
+                    //             })
+                    //             .text(pins[i])
+                    //             .appendTo("select[name='pin']");
+                    //         }
+                    //     }
+                    // }
                 }
             );
 
-            $("input[name='threshold'], input[name='min_value'], input[name='max_value']").on('keyup', function(event){
-                $(event.currentTarget).val($(event.currentTarget).val().replace(',', '.').replace(/[^0-9\.-]/, ''));
-            });
 
-            {% if sensor and sensor.ad %}
-                $("select[name='ad']").val("{{ sensor.ad }}")
+            {% if sensor and sensor.module_id %}
+                $("select[name='module']").val("{{ sensor.module_id }}")
             {% endif %}
 
-            {% if sensor and sensor.io %}
-                $("select[name='io']").val("{{ sensor.io }}")
-            {% endif %}
-
-            $("select[name='io']").trigger('change');
+            $("select[name='module']").trigger('change');
 
             {% if sensor and sensor.pin %}
-                $("select[name='pin']").val("{{ sensor.pin }}")
+                $("select[name='pin']").val("{{ sensor.pin.id }}")
             {% endif %}
 
             utils.validateForm('sensor-form', []);
