@@ -52,7 +52,7 @@ div.jGrowl div.success{
 }
 
 .add-sensor{
-    margin: 5px 0 10px 0;
+    margin: -4px 0 10px 0;
 }
 
 .box{
@@ -83,12 +83,27 @@ div.jGrowl div.success{
     font-size: 0;
 }
 
-.center-row .box, .list-view .sensor-wrapper .sensor-list{
+.center-row .box{
     font-size: 16px;
 }
 
-.list-view{
-    margin: 0 auto;
+.sensors.list-view .box{
+    margin-bottom: 10px;
+    padding-top: 15px;
+    padding-bottom: 20px;
+}
+.sensors.list-view .sensor-identificator{
+    font-size: 1.1em;
+}
+.sensors.list-view .sensor-module{
+    margin-bottom: 10px;
+    font-size: 0.9em;
+}
+.sensors.list-view .sensor-pin{
+    font-size: 0.9em;
+}
+.sensors.list-view .middle-buttons{
+    margin-bottom: 10px;
 }
 
 .center-col{
@@ -96,50 +111,42 @@ div.jGrowl div.success{
     float: none;
 }
 
-.sensors .sensor-id{
-    position: absolute;
-    top: 5px;
-    left: -5px;
-    font-size: 20px;
-    margin-bottom: 20px;
-}
-
-.sensors .sensor table.info-table td{
+.sensors.details-view .sensor table.info-table td{
     padding: 3px 5px;
     width: 50%;
 }
 
-.sensors .sensor table.info-table td.sensor-identificator{
+.sensors.details-view .sensor table.info-table td.sensor-identificator{
     font-size: 18px;
 }
 
-.sensors .sensor table.info-table td.sensor-activity{
+.sensors.details-view .sensor table.info-table td.sensor-activity{
     font-size: 16px;
     padding-bottom: 15px;
 }
 
-.sensors .sensor table.info-table td.sensor-activity span.sensor-active, div.sensor-activity span.sensor-active{
+.sensors.details-view .sensor table.info-table td.sensor-activity span.sensor-active, div.sensor-activity span.sensor-active{
     color: #149c82;
 }
 
-.sensors .sensor table.info-table td.sensor-activity span.sensor-inactive, div.sensor-activity span.sensor-inactive{
+.sensors.details-view .sensor table.info-table td.sensor-activity span.sensor-inactive, div.sensor-activity span.sensor-inactive{
     color: #df2e1b;
 }
 
-.sensors .sensor table.info-table{
+.sensors.details-view .sensor table.info-table{
     width: 100%;
     margin-bottom: 20px;
 }
 
-.sensors .sensor .middle-buttons{
+.sensors.details-view .sensor .middle-buttons{
     width: 255px;
 }
 
-.sensors .sensor .bottom-buttons{
+.sensors.details-view .sensor .bottom-buttons{
     margin-top: 20px;
 }
 
-.sensors .sensor .methods{
+.sensors.details-view .sensor .methods{
     margin-top: 20px;
 }
 
@@ -156,10 +163,24 @@ div.jGrowl div.success{
     z-index: 10000;
 }
 
+.top-buttons{
+    position: fixed;
+    top: 60px;
+    padding: 15px 0;
+    z-index: 1000;
+    background: #fff;
+    box-shadow: 0px 1px 10px #aaa;
+    left: 0;
+}
+
 
 @media (min-width:768px)
 {
-    .sensors .sensor{
+    .sensors.details-view .sensor{
         min-height: 410px;
+    }
+
+    .add-sensor-button{
+        display: none;
     }
 }

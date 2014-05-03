@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from app.web import db
+import datetime
 
 class SensorMethods(db.Model):
 
@@ -23,6 +24,7 @@ class Sensor(db.Model):
     active = db.Column(db.Boolean, default=False)
     pin_id = db.Column(db.Integer, db.ForeignKey('pin.id'))
     module_id = db.Column(db.Integer, db.ForeignKey('module.id'))
+    timestamp = db.Column(db.DateTime)
     # threshold = db.Column(db.Float, default=0.0)
 
     pin = db.relationship('Pin')
@@ -34,6 +36,7 @@ class Sensor(db.Model):
         return "%s %s %s %s" % (self.id, self.type, self.identificator, self.active)
 
     def save(self):
+        self.timestamp = datetime.datetime.now()
         db.session.add(self)
         db.session.commit()
 

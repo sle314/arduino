@@ -1,18 +1,27 @@
 {% extends "base.html" %}
+{% block head %}
+<style>
+    body{
+        padding-top: 130px;
+    }
+</style>
+{% endblock %}
 {% block content %}
-    <div class="row center add-sensor">
-	    <div class="col-xs-12">
-	        <a class="btn btn-md btn-info" href="/sensors/add/"><span class="glyphicon glyphicon-plus"></span>&nbsp;Add sensor</a>
-	    </div>
-	</div>
+    <div class="top-buttons col-xs-12">
+        <div class="row center">
+            <div class="col-xs-12">
+                {% if sensors %}
+                    {% if 'sensor_view' not in session or session['sensor_view'] != "list" %}
+                       <a class="btn btn-sm btn-info change-view list-view" href="/sensors/change_view/list/"><span class="glyphicon glyphicon-th-list"></span>&nbsp;List</a>
+                    {% else %}
+                       <a class="btn btn-sm btn-info change-view details-view" href="/sensors/change_view/details/"><span class="glyphicon glyphicon-th-large"></span>&nbsp;Grid</a>
+                    {% endif %}
+                {% endif %}
+                <a class="btn btn-sm btn-info {% if sensors %}add-sensor-button{% endif %}" href="/sensors/add/"><span class="glyphicon glyphicon-plus"></span>&nbsp;Add sensor</a>
+            </div>
+        </div>
+    </div>
 	{% if sensors %}
-	    <div id="view-selection">
-            {% if 'sensor_view' not in session or session['sensor_view'] != "list" %}
-	           <a class="btn btn-xs btn-info change-view list-view" href="/sensors/change_view/list/"><i class="glyphicon glyphicon-th"></i></a>
-            {% else %}
-	           <a class="btn btn-xs btn-info change-view details-view" href="/sensors/change_view/details/"><i class="glyphicon glyphicon-th-large"></i></a>
-            {% endif %}
-	    </div>
 	    {% if 'sensor_view' not in session or session['sensor_view'] != "list" %}
             <div class="row center-row sensors center view details-view">
     	        {% include "/sensor/views/details_view.html" %}

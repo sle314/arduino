@@ -68,5 +68,25 @@ var utils = {
             	return false;
             }
         });
+    },
+
+    checkIdentificator: function(identificator){
+        var exists = false;
+        $.ajax({
+            url: "/sensors/check_identificator/",
+            async: false,
+            type: "POST",
+            data: { identificator : identificator },
+            dataType : "json"
+        })
+        .done(function(data){
+            if (data['exists'] == true){
+                utils.flashMessage("Sensor with same identificator exists!", '{ "theme" : "error" }');
+                exists = true;
+            }
+        });
+
+        return !exists;
+
     }
 }

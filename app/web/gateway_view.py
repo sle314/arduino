@@ -48,8 +48,11 @@ def gateway():
                 if r != False:
                     if r.status_code == 200:
                         flash("Device is already registered on gateway!", category={ 'theme': 'success' } )
-                        gateway.device_registered = True
+                        gateway.device_registered = False
                         gateway.save()
+
+                        # remove_device_from_gateway(gateway.id)
+                        # register_device_on_gateway(gateway.id)
 
                     elif r.status_code == 404:
                         flash("Device is not registered.", category={ 'theme': 'warning' } )
@@ -75,8 +78,6 @@ def register_device_on_gateway(gateway_id):
                 r = init_descriptor(gateway.address, gateway.post_authorization)
 
                 if r != False:
-                    print r.status_code
-
                     r = send_descriptor(gateway.address, gateway.post_authorization)
 
                     if r != False:

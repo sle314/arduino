@@ -11,7 +11,7 @@ class SensorInteractor:
 
     @staticmethod
     def get_all():
-        sensors = Sensor.query.order_by(Sensor.active.desc(), Sensor.identificator.asc()).all()
+        sensors = Sensor.query.order_by(Sensor.active.desc(), Sensor.timestamp.desc(), Sensor.identificator.asc()).all()
         return sensors
 
     @staticmethod

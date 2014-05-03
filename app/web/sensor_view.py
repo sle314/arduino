@@ -393,3 +393,12 @@ def invoke_sensor_method(sensor_id, method_id):
             return jsonify({ "value" : r.text, "values": values })
 
     return jsonify({ "value" : 'error', 'error' : 'Something went wrong while contacting the server.' })
+
+
+@app.route('/sensors/check_identificator/', methods=['POST'])
+def check_identificator():
+    identificator = request.form.get("identificator")
+    sensor = SensorInteractor.get_by_identificator(identificator)
+    if sensor:
+        return jsonify({ "exists" : True })
+    return jsonify({ "exists" : False })

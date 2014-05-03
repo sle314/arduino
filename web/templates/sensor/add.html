@@ -59,17 +59,47 @@
 {% block includes %}
     <script type="text/javascript">
 
-        $(document).ready(function(){
+        $(document).ready(function(event){
+
+            var canSubmit = true;
+
+            $("input[name='identificator']").on('input', function(event){
+
+                canSubmit = true;
+                var old_id = "";
+                {% if sensor and sensor.identificator %}
+                    old_id = "{{ sensor.identificator }}";
+                {% endif %}
+
+                var new_id = $("input[name='identificator']").val();
+
+                if (old_id != new_id && !utils.checkIdentificator(new_id)){
+                    $(event.currentTarget).parent().addClass("has-error");
+                    canSubmit = false;
+                }
+                else{
+                    $('div.jGrowl').find('.jGrowl-close').trigger('click');
+                    $(event.currentTarget).parent().removeClass("has-error");
+                }
+
+                return false;
+
+            })
 
             $(".submit-sensor").on('click', function(event){
 
-                if ($("input[name='is_active']").is(":checked")){
-                    var pin = $("select[name='pin'] option:selected").data("arduino-pin");
-                    var identificator = $("input[name='identificator']").val();
-                    utils.checkPin(pin, identificator, function(){$("#sensor-form").submit()});
-                }
-                else{
-                    $("#sensor-form").submit();
+                if(canSubmit){
+                    if ($("input[name='is_active']").is(":checked")){
+                        var pin = $("select[name='pin'] option:selected").data("arduino-pin");
+                        var identificator = $("input[name='identificator']").val();
+                        {% if sensor and sensor.identificator %}
+                            identificator = "{{ sensor.identificator }}";
+                        {% endif %}
+                        utils.checkPin(pin, identificator, function(){$("#sensor-form").submit()});
+                    }
+                    else{
+                        $("#sensor-form").submit();
+                    }
                 }
 
             });

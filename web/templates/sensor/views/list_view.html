@@ -1,53 +1,64 @@
 {% for sensor in sensors %}
-    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 sensor-wrapper">
-        <div class="box">
-            <div class="row center-row">
-                <div class="col-xs-12 sensor-list">
-                    <div><a name="{{ sensor.identificator }}"></a></div>
-                    <div class="col-xs-12">
-                        <div data-value="{{ sensor.identificator }}" class="center-col sensor-identificator sensor-activity">
-                            <span class="{% if sensor.active %}sensor-active{% else %}sensor-inactive{% endif %}">
-                                <b>
-                                    {{sensor.identificator}}
-                                </b>
-                            </span>
+    <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 sensor-wrapper center-col">
+        <div class="box sensor" data-id="{{ sensor.id }}">
+            <div><a name="{{ sensor.identificator }}"></a></div>
+            <div class="row">
+                <div class="col-xs-12">
+                    <div data-value="{{ sensor.identificator }}" class="center-col sensor-identificator sensor-activity">
+                        <span class="{% if sensor.active %}sensor-active{% else %}sensor-inactive{% endif %}">
+                            <b>
+                                {{sensor.identificator}}
+                            </b>
+                        </span>
+                        &nbsp;
+                        (
+                        <span data-value="{{ sensor.pin.arduino_pin }}" class="sensor-pin">{{ sensor.pin.pin }}</span>
+                        )
                     </div>
-                    </div>
-                    <div class="col-xs-12">
-                        {% if not sensor.active %}
-                            <a title="activate" href="#" class="activate btn btn-sm btn-success" ><span class="glyphicon glyphicon-ok"></span></a>
-                        {% else %}
-                            <a title="deactivate" href="/sensors/{{ sensor.id }}/deactivate/" class="btn btn-sm btn-danger" ><span class="glyphicon glyphicon-remove"></span></a>
-                        {% endif %}
-                        <a title="get and send all method values to gateway" href="/sensors/{{ sensor.id }}/send_values/" class="btn btn-sm btn-info" {% if not sensor.active %}disabled{% endif %}><span class="glyphicon glyphicon-floppy-open"></span></a>
-                        <a title="edit" class="btn btn-sm btn-info" href="/sensors/{{sensor.id}}/edit/"><span class="glyphicon glyphicon-pencil"></span></a>
-                        <form method="POST" action="/sensors/delete/" class="center-col">
-                            <input type="hidden" name="sensor_id" value="{{ sensor.id }}" />
-                            <button title="delete" class="btn btn-sm btn-danger" type="submit"><span class="glyphicon glyphicon-trash"></span></button>
-                        </form>
-                    </div>
-                    <!-- <div class="col-xs-12">
-                        {% if sensor.active %}
-                            {% for sensor_method in sensor.sensor_methods %}
-                                <a class="btn btn-info btn-xs {{ sensor_method.method.type }} {% if sensor_method.method.type != 'write' %}request-button{% endif %}" data-module="{{ sensor.module_id }}" data-method="{{ sensor_method.method.id }}" data-sensor="{{ sensor.id }}" data-path="{{ sensor_method.method.path }}" data-type="{{ sensor_method.method.type }}"
-                                data-href="/{{ sensor.module.hardware.path }}/{{ sensor.module.path }}/{{ sensor_method.method.path }}/{{ sensor.pin.pin }}"
-                                    href="#" data-loading-text="Requesting...">
-                                    {{ sensor_method.method.name }}
-                                    {% if sensor_method.method.type in ['read', 'write'] %}
-                                        (
-                                        <span class="method-value">{% if sensor_method.value not in [None, ""] %}{{ sensor_method.value }}{% else %}-{% endif %}</span>
-                                        {% if sensor_method.method.unit %}
-                                            &nbsp;
-                                            {{ sensor_method.method.unit }}
-                                        {% endif %}
-                                        )
-                                    {% endif %}
-                                </a>
-                            {% endfor %}
-                        {% endif %}
-                    </div> -->
                 </div>
             </div>
+            <div class="row">
+                <div class="col-xs-12 sensor-module">
+                    {{ sensor.module.hardware.name }} - {{ sensor.module.name }}
+                </div>
+            </div>
+            <div class="row middle-buttons">
+                <div class="col-xs-12">
+                    {% if not sensor.active %}
+                        <a title="activate" href="#" class="activate btn btn-sm btn-success" ><span class="glyphicon glyphicon-ok"></span></a>
+                    {% else %}
+                        <a title="deactivate" href="/sensors/{{ sensor.id }}/deactivate/" class="btn btn-sm btn-danger" ><span class="glyphicon glyphicon-remove"></span></a>
+                    {% endif %}
+                    <a title="get and send all method values to gateway" href="/sensors/{{ sensor.id }}/send_values/" class="btn btn-sm btn-info" {% if not sensor.active %}disabled{% endif %}><span class="glyphicon glyphicon-floppy-open"></span></a>
+                    <a title="edit" class="btn btn-sm btn-info" href="/sensors/{{sensor.id}}/edit/"><span class="glyphicon glyphicon-pencil"></span></a>
+                    <form method="POST" action="/sensors/delete/" class="center-col">
+                        <input type="hidden" name="sensor_id" value="{{ sensor.id }}" />
+                        <button title="delete" class="btn btn-sm btn-danger" type="submit"><span class="glyphicon glyphicon-trash"></span></button>
+                    </form>
+                </div>
+            </div>
+            <!-- <div class="row methods">
+                <div class="col-xs-12">
+                    {% if sensor.active %}
+                        {% for sensor_method in sensor.sensor_methods %}
+                            <a class="btn btn-info btn-xs {{ sensor_method.method.type }} {% if sensor_method.method.type != 'write' %}request-button{% endif %}" data-module="{{ sensor.module_id }}" data-method="{{ sensor_method.method.id }}" data-sensor="{{ sensor.id }}" data-path="{{ sensor_method.method.path }}" data-type="{{ sensor_method.method.type }}"
+                            data-href="/{{ sensor.module.hardware.path }}/{{ sensor.module.path }}/{{ sensor_method.method.path }}/{{ sensor.pin.pin }}"
+                                href="#" data-loading-text="Requesting...">
+                                {{ sensor_method.method.name }}
+                                {% if sensor_method.method.type in ['read', 'write'] %}
+                                    (
+                                    <span class="method-value">{% if sensor_method.value not in [None, ""] %}{{ sensor_method.value }}{% else %}-{% endif %}</span>
+                                    {% if sensor_method.method.unit %}
+                                        &nbsp;
+                                        {{ sensor_method.method.unit }}
+                                    {% endif %}
+                                    )
+                                {% endif %}
+                            </a>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div> -->
         </div>
     </div>
 {% endfor %}
