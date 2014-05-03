@@ -34,6 +34,9 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
+        $(".request-button").on('click', function(event){
+            $(event.currentTarget).button('loading');
+        });
     </script>
 </body>
 </html>

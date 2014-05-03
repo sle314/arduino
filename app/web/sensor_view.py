@@ -8,7 +8,7 @@ from app.settings import local as settings
 import requests
 
 from app.arduino.gateway import GatewayInteractor
-from app.arduino.sensor import Sensor, SensorInteractor
+from app.arduino.sensor import Sensor, SensorInteractor, SensorMethods, SensorMethodsInteractor
 from app.arduino.hardware import Pin, PinInteractor, ModuleInteractor, MethodInteractor
 
 from app.helpers import request_helper
@@ -19,6 +19,11 @@ def get_sensors():
     sensors = SensorInteractor.get_all()
     return render_template("sensor/index.html", sensors = sensors )
 
+
+@app.route('/sensors/change_view/<view>/')
+def change_view_to_list(view):
+    session['sensor_view'] = view
+    return redirect("/sensors/")
 
 @app.route('/sensors/', methods=['POST'])
 def store_sensor():
@@ -37,17 +42,24 @@ def store_sensor():
 
     if SensorInteractor.get_by_identificator(sensor.identificator):
         flash("Sensor with same identifier already exists!", category={ 'theme': 'error' } )
-        return redirect("sensors/add/")
+        return redirect("/sensors/add/")
 
     try:
+        sensor.save()
+
+        for method in sensor.module.methods:
+            sm = SensorMethods()
+            sm.method = method
+            sensor.sensor_methods.append(sm)
+
         sensor.save()
 
         if request.form.get('is_active'):
 
             activate_sensor(sensor.id)
 
-            if sensor.pin.pin == "D":
-                r = request_helper.change_pin_mode(sensor.pin.pin[1:], sensor.pin.io)
+            if sensor.pin.arduino_pin == "D":
+                r = request_helper.change_pin_mode(sensor.pin.arduino_pin[1:], sensor.pin.io)
 
                 if r!= False:
                     flash("Pin %s mode successfully changed to %s!" % (sensor.pin.arduino_pin, sensor.pin.io), category={'theme' : 'success'} )
@@ -58,7 +70,7 @@ def store_sensor():
         return redirect("/sensors/#%s" % sensor.identificator)
     except IntegrityError:
         flash("Sensor with same identifier already exists!", category={ 'theme': 'error' } )
-        return redirect("sensor/add/")
+        return redirect("/sensors/add/")
 
 
 @app.route('/sensors/<int:sensor_id>/', methods=['POST'])
@@ -74,18 +86,41 @@ def update_sensor(sensor_id):
             flash("Sensor with same identifier already exists!", category={ 'theme': 'warning' } )
             return redirect("/sensors/%d/edit/" % sensor_id)
 
+        identificator_changed = False
+
         if old_sensor.identificator != identificator:
+            identificator_changed= True
+            old_sensor.identificator = identificator
             gateways = GatewayInteractor.get_all_device_registered()
             if gateways:
                 for gateway in gateways:
-                    request_helper.delete_sensor(gateway.address, gateway.post_authorization, old_sensor.identificator)
+                    for sensor_method in old_sensor.sensor_methods:
+                        request_helper.delete_sensor(gateway.address, gateway.post_authorization, old_sensor.identificator, sensor_method.method.path)
 
         if request.form.get('type'):
             old_sensor.type = request.form.get('type')
 
-        old_sensor.identificator = identificator
-        old_sensor.pin_id = request.form.get("pin")
-        old_sensor.module_id = request.form.get("module")
+        if old_sensor.pin_id != request.form.get("pin"):
+            old_sensor.pin_id = request.form.get("pin")
+
+        if old_sensor.module_id != request.form.get("module"):
+            old_sensor.module_id = request.form.get("module")
+
+            if not identificator_changed:
+                gateways = GatewayInteractor.get_all_device_registered()
+                if gateways:
+                    for gateway in gateways:
+                        for sensor_method in old_sensor.sensor_methods:
+                            request_helper.delete_sensor(gateway.address, gateway.post_authorization, old_sensor.identificator, sensor_method.method.path)
+
+            old_sensor.save()
+
+            SensorMethodsInteractor.delete_all_for_sensor(old_sensor.id)
+
+            for method in old_sensor.module.methods:
+                sm = SensorMethods()
+                sm.method = method
+                old_sensor.sensor_methods.append(sm)
 
         old_sensor.save()
 
@@ -93,11 +128,11 @@ def update_sensor(sensor_id):
 
             activate_sensor(sensor_id)
 
-            if old_sensor.pin.pin[0] == "D" and old_sensor.pin.io != old_io:
-                r = request_helper.change_pin_mode(old_sensor.pin.pin[1:], old_sensor.pin.io)
+            if old_sensor.pin.arduino_pin[0] == "D" and old_sensor.pin.io != old_io:
+                r = request_helper.change_pin_mode(old_sensor.pin.arduino_pin[1:], old_sensor.pin.io)
 
                 if r!= False:
-                    flash("Pin %s mode successfully changed to %s!" % (old_sensor.pin.pin, old_sensor.pin.io), category={'theme' : 'success'} )
+                    flash("Pin %s mode successfully changed to %s!" % (old_sensor.pin.arduino_pin, old_sensor.pin.io), category={'theme' : 'success'} )
                 else:
                     flash("Pin mode could not be changed!", category={'theme': 'error'})
         else:
@@ -130,27 +165,25 @@ def delete_sensor(sensor_id=None):
 
     if sensor:
         if sensor.active:
-
             gateways = GatewayInteractor.get_all_device_registered()
 
             if gateways:
+                deleted_all_remote = True
                 for gateway in gateways:
-                    for method in sensor.module.methods:
+                    for sensor_method in sensor.sensor_methods:
+                        r = request_helper.delete_sensor(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path)
+                        if r == False:
+                            flash("Sensor method %s was not deleted on gateway %s!" % (sensor_method.method.path, gateway.address), category={ 'theme': 'warning' } )
+                            deleted_all_remote = False
 
-                        r = request_helper.delete_sensor(gateway.address, gateway.post_authorization, sensor.identificator, method.path)
+                    if deleted_all_remote:
+                        if SensorInteractor.delete(sensor_id):
+                            flash("Sensor deleted from gateway %s!" % gateway.address, category={ 'theme': 'success' } )
+                    else:
+                        flash("Sensor could not be deleted!")
+                        return redirect("/sensors/#%s" % sensor.identificator)
 
-                        if r != False:
-                            if r.status_code == 204:
-                                if SensorInteractor.delete(sensor_id):
-                                    request_helper.send_descriptor(gateway.address, gateway.post_authorization)
-                                    flash("Sensor deleted from gateway %s!" % gateway.address, category={ 'theme': 'success' } )
-                                else:
-                                    request_helper.send_descriptor(gateway.address, gateway.post_authorization)
-                                    flash("Sensor was deleted on gateway %s but not locally!" % gateway.address, category={ 'theme': 'error' } )
-                                    return redirect("/sensors/#%s" % sensor.identificator)
-                            else:
-                                flash("Sensor could not be deleted on gateway %s!" % gateway.address, category={ 'theme': 'error' } )
-                                return redirect("/sensors/#%s" % sensor.identificator)
+                    request_helper.send_descriptor(gateway.address, gateway.post_authorization)
             else:
                 flash("No gateways with registered device", category={ 'theme': 'warning' } )
 
@@ -165,60 +198,63 @@ def delete_sensor(sensor_id=None):
 
     return redirect("/sensors/")
 
-@app.route('/sensors/<int:sensor_id>/send_value/')
+@app.route('/sensors/<int:sensor_id>/send_values/')
 def sensor_send_value(sensor_id):
     sensor = SensorInteractor.get(sensor_id)
 
     if sensor and sensor.active:
-        r = request_helper.get_from_pin(sensor.ad, sensor.pin[1:])
-        if r != False:
-            val = r.text
-            if sensor.pin[0] == "A":
-                value = sensor.min_value + ((int(val)/1024.0)*(sensor.max_value-sensor.min_value))
-                SensorInteractor.set_value(sensor_id, "%0.1f" % value)
-            else:
-                if val != sensor.value:
-                    SensorInteractor.set_value(sensor_id, "%s" % val)
+        gateways = GatewayInteractor.get_all_device_registered()
 
-            gateways = GatewayInteractor.get_all_device_registered()
-
-            if gateways:
-                for gateway in gateways:
-                    for method in sensor.module.methods:
-                        if method.type == "read":
-                            r = request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, method.path, method.value)
-                    if r != False:
-                        flash('Sensor value successfully sent to gateway %s!' % gateway.address, category={ 'theme' : 'success' } )
-            else:
-                flash("No gateways with registered device!", category={ 'theme': 'warning' } )
-
-            return redirect("/sensors/#%d" % sensor_id)
+        if gateways:
+            for gateway in gateways:
+                for sensor_method in sensor.sensor_methods:
+                    if sensor_method.method.type == "write" and sensor_method.value:
+                        r = request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path, sensor_method.value)
+                    elif sensor_method.method.type == "read":
+                        sensor_method.value = request_helper.get_sensor_value(sensor, sensor_method.method.path)
+                        sensor_method.save()
+                        r = request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path, sensor_method.value)
+                if r != False:
+                    flash('Sensor method values successfully sent to gateway %s!' % gateway.address, category={ 'theme' : 'success' } )
         else:
-            flash("Insignificant change of sensor value for the set threshold! Value wasn't sent!", category={ 'theme': 'warning' } )
+            flash("No gateways with registered device!", category={ 'theme': 'warning' } )
+
+        return redirect("/sensors/#%s" % sensor.identificator)
     else:
         flash('Sensor does not exist!', category={ 'theme': 'error' } )
 
     return redirect("/sensors/")
 
-
-@app.route('/retargeting1/sensors/<identificator>/<method_path>/', methods = ['POST'])
-def retargeting_sensor_toggle(identificator, method_path):
+@app.route('/retargeting1/sensors/<identificator>/<method_path>', methods = ['POST'])
+@app.route('/retargeting1/sensors/<identificator>/<method_path>/<value>', methods = ['POST'])
+def retargeting_sensor_toggle(identificator, method_path, value=None):
     sensor = SensorInteractor.get_by_identificator(identificator)
-    method = MethodInteractor.get_by_path(method_path, sensor.module_id)
 
     if sensor and sensor.active:
-        if sensor.pin.io == "output":
-            r = request_helper.call_arduino_path("/%s/%s/%s/%s" % (sensor.module.hardware.path, sensor.module.path, method_path, sensor.pin.pin) )
-            if r != False:
-                if r.status_code == 200:
-                    if r.text:
-                        method.value = r.text
-                        method.save()
-                        for gateway in GatewayInteractor.get_all_device_registered():
-                            request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, method.path, method.value)
-                return make_response((r.text, r.status_code))
-    return abort(400)
-
+        method = MethodInteractor.get_by_path(method_path, sensor.module_id)
+        if method:
+            if method.type != "read":
+                sensor_method = SensorMethodsInteractor.get(sensor.id, method.id)
+                if sensor_method:
+                    if sensor.pin.io == "output":
+                        path = "/%s/%s/%s/%s" % (sensor.module.hardware.path, sensor.module.path, method_path, sensor.pin.pin)
+                        if value:
+                            path += "/%s" % value
+                        r = request_helper.call_arduino_path( path )
+                        if r != False:
+                            if r.status_code == 200:
+                                if r.text:
+                                    sensor_method.value = r.text
+                                    sensor_method.save()
+                                    for gateway in GatewayInteractor.get_all_device_registered():
+                                        request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path, sensor_method.value)
+                            return make_response((r.text, r.status_code))
+                        return make_response(("400: The sensor can't be reached!", 400))
+                    return make_response(("400: You are calling a method for an INPUT sensor!", 400))
+                return make_response(("400: Invalid method for sensor!", 400))
+            return make_response(("400: You are calling a read method!", 400))
+        return make_response(("400: Invalid method for sensor!", 400))
+    return make_response(("400: Non existant sensor!", 400))
 
 
 @app.route('/sensors/<int:sensor_id>/toggle/')
@@ -241,7 +277,7 @@ def sensor_toggle(sensor_id):
                         flash("Could not toggle device!", category={ "theme" : "error" })
                 else:
                     flash("Could not toggle device!", category={ "theme" : "error" })
-        return redirect("/sensors/#%d" % sensor_id)
+        return redirect("/sensors/#%s" % sensor.identificator)
 
     flash('Sensor does not exist!', category={ 'theme': 'error' } )
     return redirect("/sensors/")
@@ -258,21 +294,30 @@ def activate_sensor(sensor_id):
 
         sensor.active = True
         sensor.save()
-        gateways = GatewayInteractor.get_all_device_registered()
+        r = request_helper.change_pin_mode(sensor.pin.arduino_pin, sensor.pin.io)
+        if r != False:
+            flash("Pin %s mode successfully changed to %s!" % (sensor.pin.arduino_pin, sensor.pin.io), category={'theme' : 'success'} )
+            for sensor_method in sensor.sensor_methods:
+                if sensor_method.method.type in ["read"]:
+                    sensor_method.value = request_helper.get_sensor_value(sensor, sensor_method.method.path)
+                    sensor_method.save()
+            gateways = GatewayInteractor.get_all_device_registered()
 
-        if gateways:
-            for gateway in gateways:
-                r = request_helper.send_descriptor(gateway.address, gateway.post_authorization)
-                if r != False:
-                    for method in sensor.module.methods:
-                        r = request_helper.init_sensor(gateway.address, gateway.post_authorization, sensor.identificator, method.path)
-                        if method.type == "read":
-                            r = request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, method.path, method.value)
-                    flash('Sensor successfully added to gateway %s!' % gateway.address, category={ 'theme': 'success' } )
+            if gateways:
+                for gateway in gateways:
+                    r = request_helper.send_descriptor(gateway.address, gateway.post_authorization)
+                    if r != False:
+                        for sensor_method in sensor.sensor_methods:
+                            r = request_helper.init_sensor(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path)
+                            if sensor_method.method.type in ["read", "write"] and sensor_method.value:
+                                r = request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path, sensor_method.value)
+                        flash('Sensor successfully added to gateway %s!' % gateway.address, category={ 'theme': 'success' } )
+                flash("Sensor activated!", category={ 'theme': 'success' } )
+            else:
+                flash("No gateways with registered device", category={ 'theme': 'warning' } )
         else:
-            flash("No gateways with registered device", category={ 'theme': 'warning' } )
+            flash("Pin mode could not be changed!", category={'theme': 'error'})
 
-        flash("Sensor activated!", category={ 'theme': 'success' } )
         return redirect("/sensors/#%s" % sensor.identificator)
 
     flash("Sensor does not exist!", category={ 'theme': 'error' } )
@@ -292,8 +337,8 @@ def deactivate_sensor(sensor_id, descriptor=True):
             for gateway in gateways:
                 if descriptor:
                     r = request_helper.send_descriptor(gateway.address, gateway.post_authorization)
-                for method in sensor.module.methods:
-                    r = request_helper.delete_sensor(gateway.address, gateway.post_authorization, sensor.identificator, method.path)
+                for sensor_method in sensor.sensor_methods:
+                    r = request_helper.delete_sensor(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path)
                 if r != False:
                     flash('Sensor successfully removed from gateway %s!' % gateway.address, category={ 'theme': 'success' } )
         else:
@@ -305,17 +350,17 @@ def deactivate_sensor(sensor_id, descriptor=True):
     return redirect("/sensors/")
 
 
-@app.route('/sensors/write/', methods=['POST'])
-def write_to_sensor():
-    sensor = SensorInteractor.get(int(request.form["sensor_id"]))
-    sensor.value = request.form["value"]
-    sensor.save()
-    for gateway in GatewayInteractor.get_all_device_registered():
-        for method in sensor.module.methods:
-            if method.type == "read":
-                request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, method.path, method.value)
-    request_helper.write_to_pin(sensor.ad, sensor.pin[1:], sensor.value)
-    return redirect("/sensors/#%s" % sensor.id)
+# @app.route('/sensors/write/', methods=['POST'])
+# def write_to_sensor():
+#     sensor = SensorInteractor.get(int(request.form["sensor_id"]))
+#     sensor.value = request.form["value"]
+#     sensor.save()
+#     for gateway in GatewayInteractor.get_all_device_registered():
+#         for method in sensor.module.methods:
+#             if method.type in ["read", "write"] and method.value:
+#                 request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, method.path, method.value)
+#     request_helper.write_to_pin(sensor.ad, sensor.pin[1:], sensor.value)
+#     return redirect("/sensors/#%s" % sensor.id)
 
 
 @app.route('/modules/<int:module_id>/pins/', methods=['GET'])
@@ -324,13 +369,27 @@ def get_pins_for_module(module_id):
     return render_template("/common/pin_select.html", pins = pins)
 
 
-@app.route('/modules/<int:module_id>/methods/<int:method_id>/invoke/', methods=['POST'])
-def invoke_sensor_method(module_id, method_id):
+@app.route('/sensors/<int:sensor_id>/methods/<int:method_id>/invoke/', methods=['POST'])
+def invoke_sensor_method(sensor_id, method_id):
     path = request.form.get("path")
     r = request_helper.call_arduino_path(path)
+    values = []
 
-    method = MethodInteractor.get(method_id)
-    method.value = r.text
-    method.save()
+    if r != False:
+        sensor_method = SensorMethodsInteractor.get(sensor_id, method_id)
+        if r.text != "":
+            sensor_method.value = r.text
+            sensor_method.save()
+            if sensor_method.method.type in ["write", "call"]:
+                sensor = SensorInteractor.get(sensor_id)
+                if sensor:
+                    for sensor_method in sensor.sensor_methods:
+                        if sensor_method.method.type == "read":
+                            rq = request_helper.call_arduino_path("/%s/%s/%s/%s" % (sensor.module.hardware.path, sensor.module.path, sensor_method.method.path, sensor.pin.pin))
+                            sensor_method.value = rq.text
+                            sensor_method.save()
+                            values.append({"path":sensor_method.method.path, "value" : rq.text})
 
-    return jsonify({ "value" : r.text })
+            return jsonify({ "value" : r.text, "values": values })
+
+    return jsonify({ "value" : 'error', 'error' : 'Something went wrong while contacting the server.' })

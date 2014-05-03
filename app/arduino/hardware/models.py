@@ -69,6 +69,7 @@ class Pin(db.Model):
 
 
 class Method(db.Model):
+
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     module_id = db.Column(db.Integer, db.ForeignKey('module.id'))
     module = db.relationship('Module', backref=db.backref('methods', lazy='dynamic'))
@@ -77,7 +78,7 @@ class Method(db.Model):
     path = db.Column(db.String(50))
     type = db.Column(db.String(10), default="read")
 
-    value = db.Column(db.String(100), default="0")
+    value_type = db.Column(db.String(20))
     unit = db.Column(db.String(20))
 
     def __init__(self, data):
@@ -86,7 +87,10 @@ class Method(db.Model):
         self.module_id = data['mod_id']
         self.unit = data['unit']
         self.path = data['path']
+        self.value_type = data['value_type']
 
     def save(self):
         db.session.add(self)
         db.session.commit()
+
+

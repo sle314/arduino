@@ -1,8 +1,6 @@
-from app.arduino.sensor.models import Sensor
+from app.arduino.sensor.models import Sensor, SensorMethods
 from app.arduino.hardware import Pin
-# import threading
-from app.web import db
-from sqlalchemy import and_
+from sqlalchemy import and_, asc, desc
 
 class SensorInteractor:
 
@@ -13,7 +11,7 @@ class SensorInteractor:
 
     @staticmethod
     def get_all():
-        sensors = Sensor.query.all()
+        sensors = Sensor.query.order_by(Sensor.active.desc(), Sensor.identificator.asc()).all()
         return sensors
 
     @staticmethod
@@ -30,8 +28,7 @@ class SensorInteractor:
     def delete(sensor_id):
         sensor = Sensor.query.filter(Sensor.id==sensor_id).first()
         if sensor:
-            db.session.delete(sensor)
-            db.session.commit()
+            sensor.delete()
             return True
         return False
 
@@ -45,3 +42,15 @@ class SensorInteractor:
         sensor = Sensor.query.filter(Sensor.id==sensor_id).first()
         sensor.value = str(value)
         sensor.save()
+
+
+class SensorMethodsInteractor:
+
+    @staticmethod
+    def get(sensor_id, method_id):
+        return SensorMethods.query.filter(and_( SensorMethods.sensor_id==sensor_id, SensorMethods.method_id==method_id )).first()
+
+    @staticmethod
+    def delete_all_for_sensor(sensor_id):
+        from app.web import db
+        db.session.query(SensorMethods).filter(SensorMethods.sensor_id == sensor_id).delete()

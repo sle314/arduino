@@ -47,18 +47,21 @@ HARDWARE = [
                         'name': 'Read analog value',
                         'path': 'read',
                         'type': 'read',
-                        'unit': None
+                        'value_type': 'int',
+                        'unit': ''
                     },
                     {
                         'name': 'Read Celsius',
                         'path': 'read_celsius',
                         'type': 'read',
+                        'value_type': 'real',
                         'unit': 'C'
                     },
                     {
                         'name': 'Read Fahrenheit',
                         'path': 'read_fahrenheit',
                         'type': 'read',
+                        'value_type': 'real',
                         'unit': 'F'
                     }
                 ]
@@ -74,25 +77,29 @@ HARDWARE = [
                         'name': 'Turn on',
                         'path': 'on',
                         'type': 'call',
+                        'value_type': None,
                         'unit': None
                     },
                     {
                         'name': 'Turn off',
                         'path': 'off',
                         'type': 'call',
+                        'value_type': None,
                         'unit': None
                     },
                     {
                         'name': 'Get state',
                         'path': 'state',
                         'type': 'read',
-                        'unit': None
+                        'value_type': 'bool',
+                        'unit': ''
                     },
                     {
                         'name': 'Adjust brightness',
                         'path': 'brightness',
                         'type': 'write',
-                        'unit': None
+                        'value_type': 'int',
+                        'unit': ''
                     }
                 ]
             }
@@ -130,7 +137,8 @@ HARDWARE = [
                         'name': 'Read value',
                         'path': 'read',
                         'type': 'read',
-                        'unit': None
+                        'value_type': 'bool',
+                        'unit': ''
                     }
                 ]
             },
@@ -145,18 +153,21 @@ HARDWARE = [
                         'name': 'Read value',
                         'path': 'read',
                         'type': 'read',
-                        'unit': None
+                        'value_type': 'bool',
+                        'unit': ''
                     },
                     {
                         'name': 'Write value',
                         'path': 'write',
                         'type': 'write',
-                        'unit': None
+                        'value_type': 'bool',
+                        'unit': ''
                     },
                     {
                         'name': 'Toggle value',
                         'path': 'toggle',
                         'type': 'call',
+                        'value_type': None,
                         'unit': None
                     }
                 ]
@@ -172,13 +183,15 @@ HARDWARE = [
                         'name': 'Read value',
                         'path': 'read',
                         'type': 'read',
-                        'unit': None
+                        'value_type': 'str',
+                        'unit': ''
                     },
                     {
                         'name': 'Write value',
                         'path': 'write',
                         'type': 'write',
-                        'unit': None
+                        'value_type': 'str',
+                        'unit': ''
                     }
                 ]
             },
@@ -193,7 +206,8 @@ HARDWARE = [
                         'name': 'Read value',
                         'path': 'read',
                         'type': 'read',
-                        'unit': None
+                        'value_type': 'str',
+                        'unit': ''
                     }
                 ]
             }
@@ -217,34 +231,34 @@ HARDWARE = [
             { 'pin': 'D3', 'arduino_pin': 'D3', 'io': 'output', 'ad': 'digital' },
             { 'pin': 'D4', 'arduino_pin': 'D4', 'io': 'output', 'ad': 'digital' },
             { 'pin': 'D5', 'arduino_pin': 'D5', 'io': 'output', 'ad': 'digital' },
-            { 'pin': 'D6', 'arduino_pin': 'D2', 'io': 'output', 'ad': 'digital' },
-            { 'pin': 'D7', 'arduino_pin': 'D3', 'io': 'output', 'ad': 'digital' },
-            { 'pin': 'D8', 'arduino_pin': 'D4', 'io': 'output', 'ad': 'digital' },
-            { 'pin': 'D9', 'arduino_pin': 'D5', 'io': 'output', 'ad': 'digital' },
-            { 'pin': 'D10', 'arduino_pin': 'D2', 'io': 'output', 'ad': 'digital' },
-            { 'pin': 'D11', 'arduino_pin': 'D3', 'io': 'output', 'ad': 'digital' },
-            { 'pin': 'D12', 'arduino_pin': 'D4', 'io': 'output', 'ad': 'digital' },
-            { 'pin': 'D13', 'arduino_pin': 'D5', 'io': 'output', 'ad': 'digital' },
+            { 'pin': 'D6', 'arduino_pin': 'D6', 'io': 'output', 'ad': 'digital' },
+            { 'pin': 'D7', 'arduino_pin': 'D7', 'io': 'output', 'ad': 'digital' },
+            { 'pin': 'D8', 'arduino_pin': 'D8', 'io': 'output', 'ad': 'digital' },
+            { 'pin': 'D9', 'arduino_pin': 'D9', 'io': 'output', 'ad': 'digital' },
+            { 'pin': 'D10', 'arduino_pin': 'D10', 'io': 'output', 'ad': 'digital' },
+            { 'pin': 'D11', 'arduino_pin': 'D11', 'io': 'output', 'ad': 'digital' },
+            { 'pin': 'D12', 'arduino_pin': 'D12', 'io': 'output', 'ad': 'digital' },
+            { 'pin': 'D13', 'arduino_pin': 'D13', 'io': 'output', 'ad': 'digital' },
 
             { 'pin': 'D2', 'arduino_pin': 'D2', 'io': 'input', 'ad': 'digital' },
             { 'pin': 'D3', 'arduino_pin': 'D3', 'io': 'input', 'ad': 'digital' },
             { 'pin': 'D4', 'arduino_pin': 'D4', 'io': 'input', 'ad': 'digital' },
             { 'pin': 'D5', 'arduino_pin': 'D5', 'io': 'input', 'ad': 'digital' },
-            { 'pin': 'D6', 'arduino_pin': 'D2', 'io': 'input', 'ad': 'digital' },
-            { 'pin': 'D7', 'arduino_pin': 'D3', 'io': 'input', 'ad': 'digital' },
-            { 'pin': 'D8', 'arduino_pin': 'D4', 'io': 'input', 'ad': 'digital' },
-            { 'pin': 'D9', 'arduino_pin': 'D5', 'io': 'input', 'ad': 'digital' },
-            { 'pin': 'D10', 'arduino_pin': 'D2', 'io': 'input', 'ad': 'digital' },
-            { 'pin': 'D11', 'arduino_pin': 'D3', 'io': 'input', 'ad': 'digital' },
-            { 'pin': 'D12', 'arduino_pin': 'D4', 'io': 'input', 'ad': 'digital' },
-            { 'pin': 'D13', 'arduino_pin': 'D5', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'D6', 'arduino_pin': 'D6', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'D7', 'arduino_pin': 'D7', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'D8', 'arduino_pin': 'D8', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'D9', 'arduino_pin': 'D9', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'D10', 'arduino_pin': 'D10', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'D11', 'arduino_pin': 'D11', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'D12', 'arduino_pin': 'D12', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'D13', 'arduino_pin': 'D13', 'io': 'input', 'ad': 'digital' },
 
             { 'pin': 'D3', 'arduino_pin': 'D3', 'io': 'output', 'ad': 'analog' },
             { 'pin': 'D5', 'arduino_pin': 'D5', 'io': 'output', 'ad': 'analog' },
-            { 'pin': 'D6', 'arduino_pin': 'D2', 'io': 'output', 'ad': 'analog' },
-            { 'pin': 'D9', 'arduino_pin': 'D5', 'io': 'output', 'ad': 'analog' },
-            { 'pin': 'D10', 'arduino_pin': 'D2', 'io': 'output', 'ad': 'analog' },
-            { 'pin': 'D11', 'arduino_pin': 'D3', 'io': 'output', 'ad': 'analog' }
+            { 'pin': 'D6', 'arduino_pin': 'D6', 'io': 'output', 'ad': 'analog' },
+            { 'pin': 'D9', 'arduino_pin': 'D9', 'io': 'output', 'ad': 'analog' },
+            { 'pin': 'D10', 'arduino_pin': 'D10', 'io': 'output', 'ad': 'analog' },
+            { 'pin': 'D11', 'arduino_pin': 'D11', 'io': 'output', 'ad': 'analog' }
         ]
 
     }

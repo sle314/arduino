@@ -1,5 +1,4 @@
 from app.arduino.gateway.models import Gateway
-from app.web import db
 
 class GatewayInteractor:
 
@@ -22,7 +21,6 @@ class GatewayInteractor:
     def delete(gateway_id):
         gateway = Gateway.query.filter_by(id=gateway_id).first()
         if gateway:
-            db.session.delete(gateway)
-            db.session.commit()
+            gateway.delete()
             return True
         return False

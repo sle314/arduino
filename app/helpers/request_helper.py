@@ -80,7 +80,7 @@ def init_pin_modes():
     sensors = SensorInteractor.get_all_active()
     if sensors:
         for sensor in sensors:
-            if sensor.pin.pin[0] == "D":
+            if sensor.pin.arduino_pin[0] == "D":
                 try:
                     requests.get("http://%s%s%s/%s/%s" % (
                             settings.LOCAL,
@@ -92,7 +92,7 @@ def init_pin_modes():
                         timeout = 5
                     )
 
-                    print "Pin %s mode successfully changed to %s!" % (sensor.pin.pin, sensor.pin.io)
+                    print "Pin %s mode successfully changed to %s!" % (sensor.pin.arduino_pin, sensor.pin.io)
 
                 except ConnectionError:
                     print "Cannot connect to %s!" % settings.IP_DNS
@@ -293,7 +293,7 @@ def send_descriptor(address, post_authorization):
         </obj>' % { "app_id" : settings.DEVICE_ID }
 
     sensors = SensorInteractor.get_all_active()
-
+    print sensors
     if sensors:
 
         # type = []
@@ -301,29 +301,34 @@ def send_descriptor(address, post_authorization):
         sub_xml = ''
 
         for sensor in sensors:
-            for method in sensor.module.methods:
+            for sensor_method in sensor.sensor_methods:
 
                 # sensor_type = sensor.type
                 # if sensor_type in type:
                 #     sensor_type = '%s%02d' % ( sensor.type, n)
                 #     n = n + 1
                 sub_xml = sub_xml + '<obj>\
-                    <str name="interfaceID" val="%(sensor_identificator)s_%(method_path)s.Srv" />' % { "sensor_identificator" : sensor.identificator,"method_path" : method.path }
-                if method.type == "read":
-                    '<real href="%(sensor_href)s" name="m2mMeasuredValue" unit="obix:units/%(method_unit)s" />' %\
-                        {
-                            "method_unit" : method.unit,
-                            "sensor_href" : '%s/%s%s/%s_%s%s%s' % (settings.APPLICATIONS, settings.DEVICE_ID, settings.CONTAINERS, sensor.identificator, method.path, settings.CONTENT_INSTANCES, settings.LATEST_CONTENT)
-                        }
-                elif method.type == "call":
+                    <str name="interfaceID" val="%(sensor_identificator)s_%(method_path)s.Srv" />' % { "sensor_identificator" : sensor.identificator,"method_path" : sensor_method.method.path }
+                if sensor_method.method.type in ["read", "write"]:
                     sub_xml = sub_xml + \
-                        '<op name="%(method_path)s" href="/m2m/applications/%(app_id)s/retargeting1/sensors/%(sensor_id)s/%(method_path)s/" />' % { "method_path" : method.path, "app_id" : settings.DEVICE_ID, "sensor_id" : sensor.identificator}
-
+                    '<%(method_value_type)s href="%(sensor_href)s" name="m2mMeasuredValue" unit="obix:units/%(method_unit)s" />' %\
+                        {
+                            "method_value_type": sensor_method.method.value_type,
+                            "method_unit" : sensor_method.method.unit,
+                            "sensor_href" : '%s/%s%s/%s_%s%s%s' % (settings.APPLICATIONS, settings.DEVICE_ID, settings.CONTAINERS, sensor.identificator, sensor_method.method.path, settings.CONTENT_INSTANCES, settings.LATEST_CONTENT)
+                        }
+                if sensor_method.method.type in ["write", "call"]:
+                    path = sensor_method.method.path
+                    if sensor_method.method.type == "write":
+                        path += "/<value-to-be-written>"
+                    sub_xml = sub_xml + \
+                        '<op type="%(method_type)s" name="%(method_name)s" href="/m2m/applications/%(app_id)s/retargeting1/sensors/%(sensor_id)s/%(method_path)s" />'\
+                        % { "method_type" : sensor_method.method.type, "method_name" : sensor_method.method.path, "method_path" : path, "app_id" : settings.DEVICE_ID, "sensor_id" : sensor.identificator}
                 sub_xml = sub_xml + '</obj>'
 
                 # type.append(sensor_type)
 
-                init_sensor(address, post_authorization, sensor.identificator, method.path)
+                init_sensor(address, post_authorization, sensor.identificator, sensor_method.method.path)
 
         xml = xml + sub_xml
 
@@ -374,17 +379,17 @@ def send_descriptor(address, post_authorization):
 #         flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
 #         return False
 
-def get_sensor_value(sensor, method):
+def get_sensor_value(sensor, method_path):
     try:
         r = requests.get("http://%s%s/%s/%s/%s/%s" % (
                 settings.LOCAL,
                 settings.REST_ROOT,
                 sensor.module.hardware.path,
                 sensor.module.path,
-                method.path,
+                method_path,
                 sensor.pin.pin
             ),
-            timeout = 10
+            timeout = 5
         )
 
         return r.text
@@ -397,23 +402,23 @@ def get_sensor_value(sensor, method):
         flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
         return False
 
-def get_sensor_values():
-    try:
-        r = requests.get("http://localhost/data/get",
-            timeout = 10
-        )
+# def get_sensor_values():
+#     try:
+#         r = requests.get("http://localhost/data/get",
+#             timeout = 5
+#         )
 
-        from flask import json
+#         from flask import json
 
-        return json.loads(r.text)['value']
+#         return json.loads(r.text)['value']
 
-    except ConnectionError:
-        # flash("Cannot connect to device!", category={ 'theme': 'error' } )
-        return False
+#     except ConnectionError:
+#         # flash("Cannot connect to device!", category={ 'theme': 'error' } )
+#         return False
 
-    except Timeout:
-        # flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
-        return False
+#     except Timeout:
+#         # flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
+#         return False
 
 
 def send_sensor_value(address, post_authorization, sensor_identificator, method_path, value):

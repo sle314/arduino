@@ -86,10 +86,10 @@ def register_device_on_gateway(gateway_id):
                             for sensor in sensors:
                                 if sensor.active:
                                     sensor.save()
-                                    for method in sensor.module.methods:
-                                        init_sensor(gateway.address, gateway.post_authorization, sensor.identificator, method.path)
-                                        if method.type == "read":
-                                            send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, method.path, method.value)
+                                    for sensor_method in sensor.sensor_methods:
+                                        init_sensor(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path)
+                                        if sensor_method.method.type in ["read", "write"] and sensor_method.value:
+                                            send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path, sensor_method.value)
 
                         flash('Device successfully registered!', category={ 'theme': 'success' } )
                         gateway.device_registered = True

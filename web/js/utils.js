@@ -17,7 +17,9 @@ var utils = {
                         fail = true;
                     }
                     else{
-                        callback();
+                        if (callback != null){
+                            callback();
+                        }
                     }
                 }
             });
@@ -26,6 +28,7 @@ var utils = {
     },
 
     flashMessage : function(message, options){
+        //options.life = 3500;
         options = JSON.parse(options);
 
         options.position = "bottom-right";

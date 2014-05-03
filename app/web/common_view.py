@@ -37,11 +37,11 @@ def check_pin(identificator, pin):
 def cron():
     for gateway in GatewayInteractor.get_all_device_registered():
         for sensor in SensorInteractor.get_all_active():
-            for method in sensor.module.methods:
-                if method.type == 'read':
-                    method.value = request_helper.get_sensor_value(sensor, method)
-                    method.save()
-                    request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, method.path, method.value)
+            for sensor_method in sensor.sensor_methods:
+                if sensor_method.method.type == "read":
+                    sensor_method.value = request_helper.get_sensor_value(sensor, sensor_method.method.path)
+                    sensor_method.save()
+                    request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path, sensor_method.value)
     return make_response()
 
 
@@ -67,9 +67,12 @@ def ip_cron():
             r = request_helper.send_descriptor(gateway.address, gateway.post_authorization)
             print "Descriptor: %d" % r.status_code
             for sensor in SensorInteractor.get_all_active():
-                r = request_helper.delete_sensor(gateway.address, gateway.post_authorization, sensor.identificator)
-                print "Delete sensor: %d" % r.status_code
-                for method in sensor.module.methods:
-                    r = request_helper.init_sensor(gateway.address, gateway.post_authorization, sensor.identificator, method.path)
-                print "Init sensor: %d" % r.status_code
+                for sensor_method in sensor.sensor_methods:
+                    r = request_helper.delete_sensor(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path)
+                    print "Delete sensor method %s: %d" % (sensor_method.method.path, r.status_code)
+                    r = request_helper.init_sensor(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path)
+                    print "Init sensor method %s: %d" % (sensor_method.method.path, r.status_code)
+                    if method.type in ["read", "write"]:
+                        r = request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path, sensor_method.value)
+                        print "Send method value %s: %d" % (sensor_method.method.path, r.status_code)
     return make_response()

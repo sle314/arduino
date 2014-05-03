@@ -83,17 +83,17 @@ div.jGrowl div.success{
     font-size: 0;
 }
 
-.center-row .box{
+.center-row .box, .list-view .sensor-wrapper .sensor-list{
     font-size: 16px;
+}
+
+.list-view{
+    margin: 0 auto;
 }
 
 .center-col{
     display: inline-block;
     float: none;
-}
-
-.sensors .sensor{
-    min-height: 400px;
 }
 
 .sensors .sensor-id{
@@ -118,11 +118,11 @@ div.jGrowl div.success{
     padding-bottom: 15px;
 }
 
-.sensors .sensor table.info-table td.sensor-activity span.sensor-active{
+.sensors .sensor table.info-table td.sensor-activity span.sensor-active, div.sensor-activity span.sensor-active{
     color: #149c82;
 }
 
-.sensors .sensor table.info-table td.sensor-activity span.sensor-inactive{
+.sensors .sensor table.info-table td.sensor-activity span.sensor-inactive, div.sensor-activity span.sensor-inactive{
     color: #df2e1b;
 }
 
@@ -141,4 +141,25 @@ div.jGrowl div.success{
 
 .sensors .sensor .methods{
     margin-top: 20px;
+}
+
+.methods a:link, .methods a:visited, .methods a:hover, .methods a:active{
+    text-decoration: none;
+    display: inline-block;
+    margin: 5px;
+}
+
+#view-selection{
+    position: fixed;
+    top: 70px;
+    left: 15px;
+    z-index: 10000;
+}
+
+
+@media (min-width:768px)
+{
+    .sensors .sensor{
+        min-height: 410px;
+    }
 }

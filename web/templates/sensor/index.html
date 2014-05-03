@@ -1,12 +1,154 @@
 {% extends "base.html" %}
 {% block content %}
-    {% include "sensor/view.html" %}
+    <div class="row center add-sensor">
+	    <div class="col-xs-12">
+	        <a class="btn btn-md btn-info" href="/sensors/add/"><span class="glyphicon glyphicon-plus"></span>&nbsp;Add sensor</a>
+	    </div>
+	</div>
+	{% if sensors %}
+	    <div id="view-selection">
+            {% if 'sensor_view' not in session or session['sensor_view'] != "list" %}
+	           <a class="btn btn-xs btn-info change-view list-view" href="/sensors/change_view/list/"><i class="glyphicon glyphicon-th"></i></a>
+            {% else %}
+	           <a class="btn btn-xs btn-info change-view details-view" href="/sensors/change_view/details/"><i class="glyphicon glyphicon-th-large"></i></a>
+            {% endif %}
+	    </div>
+	    {% if 'sensor_view' not in session or session['sensor_view'] != "list" %}
+            <div class="row center-row sensors center view details-view">
+    	        {% include "/sensor/views/details_view.html" %}
+    	    </div>
+        {% else %}
+            <div class="row center-row sensors center view list-view">
+    	        {% include "/sensor/views/list_view.html" %}
+    	    </div>
+        {% endif %}
+	    {% include "/sensor/modals/write_modal.html"%}
+	    {% include "/sensor/modals/pin_modal.html" %}
+	{% endif %}
+
 {% endblock %}
 
 {% block includes %}
     <script type="text/javascript">
+
         $(document).ready(function(){
-            $("#navbar-collapse li#view-sensors").addClass("active");
+
+        	$("#navbar-collapse li#view-sensors").addClass("active");
+
+            $("a.activate").on('click', function(event){
+                var id = $(event.currentTarget).parents(".sensor").data("id");
+                var pin = $(event.currentTarget).parents(".sensor").find(".sensor-pin").data("value");
+                var identificator = $(event.currentTarget).parents(".sensor").find(".sensor-identificator").data("value");
+                utils.checkPin(pin, identificator, function(){ window.location = "/sensors/" + id + "/activate/" });
+
+                $("#pin-modal-proceed").unbind('click');
+                $("#pin-modal-proceed").on('click', function(){
+                    window.location = "/sensors/" + id + "/activate/";
+                });
+                return false;
+            });
+
+            $("a.read, a.call").on('click', function(event){
+
+                var path = $(event.currentTarget).data("href");
+                var sensor_id = $(event.currentTarget).data("sensor");
+                var module_id = $(event.currentTarget).data("module");
+                var method_id = $(event.currentTarget).data("method");
+                var target = $(event.currentTarget);
+
+                $.ajax({
+                    url: "/sensors/" + sensor_id + "/methods/" + method_id + "/invoke/",
+                    type: "POST",
+                    data: { path : path },
+                    dataType: "json"
+                })
+                .done(function(data){
+                    if (data['value'] == "error"){
+                        target.button('reset');
+                        utils.flashMessage("Error: " + data['error'], '{ "theme" : "error" }');
+                    }
+                    else{
+                        var values = data['values'];
+                        //mora bit ovdje jer mijenjamo vrijednost unutar njega, pa ga prvo treba resetirati
+                        target.button('reset');
+                        utils.flashMessage("Success!", '{ "theme" : "success", "life" : "1000" }');
+                        if (target.hasClass("read")){
+                            target.find("span.method-value").html(data['value']);
+                        }
+                        else{
+                            if (values.length > 0 ){
+                                for (var i =0; i<values.length; i++ ){
+                                    target.siblings("a[data-type='read'][data-path='"+ values[i]['path'] +"']").find("span.method-value").html(values[i]['value']);
+                                }
+                            }
+                        }
+                    }
+                })
+                .fail(function(){
+                    target.button('reset');
+                });
+
+                return false;
+            });
+
+            $("a.write").on('click', function(event){
+                var target = $(event.currentTarget);
+                var sensor_id = $(event.currentTarget).data("sensor");
+                var module_id = target.data("module");
+                var method_id = target.data("method");
+
+                $(".write-modal").modal("show");
+
+                $('.write-modal').unbind('shown.bs.modal');
+
+                $('.write-modal').on('shown.bs.modal', function() {
+                    if (target.find("span.method-value").html() != "-"){
+                        $(".write-modal input[name='value']").val(target.find("span.method-value").html());
+                    }
+                    $(".write-modal input[name='value']").focus();
+                });
+
+                $("#method-write-submit").on('click', function(event){
+                    var val = $("input[name='value']").val();
+
+                    if (val == ""){
+                        utils.flashMessage("Please enter a value", '{ "theme" : "error" }');
+                        $(".write-modal input[name='value']").parents(".form-group").addClass("has-error");
+                        $(".write-modal input[name='value']").focus();
+                        return false;
+                    }
+                    else{
+                        var path = target.data("href") + "/" + val;
+                        $.ajax({
+                            url: "/sensors/" + sensor_id + "/methods/" + method_id + "/invoke/",
+                            type: "POST",
+                            dataType: "json",
+                            data: { path : path }
+                        })
+                        .done(function(data){
+                            if (data['value'] == "error"){
+                                utils.flashMessage("Error: " + data['error'], '{ "theme" : "error" }');
+                            }
+                            else{
+                                var values = data['values'];
+                                utils.flashMessage("Success!", '{ "theme" : "success", "life" : "1000" }');
+                                $(".write-modal").modal("hide");
+                                target.find("span.method-value").html(data['value']);
+                                if (values.length > 0 ){
+                                    for (var i =0; i<values.length; i++ ){
+                                        target.siblings("a[data-type='read'][data-path='"+ values[i]['path'] +"']").find("span.method-value").html(values[i]['value']);
+                                    }
+                                }
+                            }
+                        })
+                        .always(function(){
+                            $(event.currentTarget).button("reset");
+                        });
+                    }
+
+                });
+                return false;
+            });
         });
     </script>
 {% endblock %}
