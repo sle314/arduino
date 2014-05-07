@@ -1,3 +1,4 @@
+from app.web import app
 from app.settings import local as settings
 from requests.exceptions import ConnectionError, Timeout
 import requests
@@ -23,12 +24,14 @@ def call_arduino_path(path):
 
         return r
 
-    except ConnectionError:
+    except ConnectionError as e:
         flash("Cannot connect to %s!" % settings.LOCAL, category={'theme' : 'error'})
+        app.logger.error("Calling arduino path: %s" % (str(e), ))
         return False
 
-    except Timeout:
+    except Timeout as e:
         flash("Request timed out. Wrong IP?", category={'theme' : 'error'})
+        app.logger.error("Calling arduino path: %s" % (str(e), ))
         return False
 
 
@@ -45,12 +48,14 @@ def get_from_pin(mode, pin):
 
         return r
 
-    except ConnectionError:
+    except ConnectionError as e:
         flash("Cannot connect to %s!" % settings.LOCAL, category={'theme' : 'error'})
+        app.logger.error("Getting value from pin: %s" % (str(e), ))
         return False
 
-    except Timeout:
+    except Timeout as e:
         flash("Request timed out. Wrong IP?", category={'theme' : 'error'})
+        app.logger.error("Getting value from pin: %s" % (str(e), ))
         return False
 
 def write_to_pin(mode, pin, value):
@@ -68,15 +73,18 @@ def write_to_pin(mode, pin, value):
         flash("Pin %s value successfully written!" % pin, category={'theme' : 'success'} );
         return r
 
-    except ConnectionError:
+    except ConnectionError as e:
         flash("Cannot connect to %s!" % settings.LOCAL, category={'theme' : 'error'})
+        app.logger.error("Writting value to pin: %s" % (str(e), ))
         return False
 
-    except Timeout:
+    except Timeout as e:
         flash("Request timed out. Wrong IP?", category={'theme' : 'error'})
+        app.logger.error("Writting value to pin: %s" % (str(e), ))
         return False
 
 def init_pin_modes():
+    app.logger.info("----START init pin modes START----")
     sensors = SensorInteractor.get_all_active()
     if sensors:
         for sensor in sensors:
@@ -92,15 +100,16 @@ def init_pin_modes():
                         timeout = 5
                     )
 
-                    print "Pin %s mode successfully changed to %s!" % (sensor.pin.arduino_pin, sensor.pin.io)
+                    app.logger.info("Pin %s mode successfully changed to %s!" % (sensor.pin.arduino_pin, sensor.pin.io))
 
                 except ConnectionError:
-                    print "Cannot connect to %s!" % settings.IP_DNS
-                    break
+                    app.logger.error("Cannot connect to %s!" % settings.IP_DNS)
+                    continue
 
                 except Timeout:
-                    print "Request timed out. Wrong IP?"
-                    break
+                    app.logger.error("Request timed out. Wrong IP?")
+                    continue
+    app.logger.info("----END init pin modes END----")
 
 def change_pin_mode(pin, mode):
     try:
@@ -114,12 +123,14 @@ def change_pin_mode(pin, mode):
         )
         return r
 
-    except ConnectionError:
+    except ConnectionError as e:
         flash("Cannot connect to %s!" % settings.LOCAL, category={ 'theme': 'error' } )
+        app.logger.error("Changing pin mode: %s" % (str(e), ))
         return False
 
-    except Timeout:
+    except Timeout as e:
         flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
+        app.logger.error("Changing pin mode: %s" % (str(e), ))
         return False
 
 def check_device(address, authorization):
@@ -136,12 +147,14 @@ def check_device(address, authorization):
         )
         return r
 
-    except ConnectionError:
+    except ConnectionError as e:
         flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
+        app.logger.error("Checking device: %s" % (str(e), ))
         return False
 
-    except Timeout:
+    except Timeout as e:
         flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
+        app.logger.error("Checking device: %s" % (str(e), ))
         return False
 
 def check_gateway(address, authorization):
@@ -158,12 +171,14 @@ def check_gateway(address, authorization):
         )
         return r
 
-    except ConnectionError:
+    except ConnectionError as e:
         flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
+        app.logger.error("Checking gateway: %s" % (str(e), ))
         return False
 
-    except Timeout:
+    except Timeout as e:
         flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
+        app.logger.error("Checking gateway: %s" % (str(e), ))
         return False
 
 
@@ -200,12 +215,14 @@ def init_device(address, post_authorization):
         )
 
         return r
-    except ConnectionError:
+    except ConnectionError as e:
         flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
+        app.logger.error("Device initialization: %s" % (str(e), ))
         return False
 
-    except Timeout:
+    except Timeout as e:
         flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
+        app.logger.error("Device initialization: %s" % (str(e), ))
         return False
 
 
@@ -234,12 +251,14 @@ def init_descriptor(address, post_authorization):
 
         return r
 
-    except ConnectionError:
+    except ConnectionError as e:
         flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
+        app.logger.error("Descriptor initialization: %s" % (str(e), ))
         return False
 
-    except Timeout:
+    except Timeout as e:
         flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
+        app.logger.error("Descriptor initialization: %s" % (str(e), ))
         return False
 
 def init_sensor(address, post_authorization, sensor_identificator, method_path):
@@ -269,12 +288,14 @@ def init_sensor(address, post_authorization, sensor_identificator, method_path):
 
         return r
 
-    except ConnectionError:
+    except ConnectionError as e:
         flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
+        app.logger.error("Sensor initialization: %s" % (str(e), ))
         return False
 
-    except Timeout:
+    except Timeout as e:
         flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
+        app.logger.error("Sensor initialization: %s" % (str(e), ))
         return False
 
 def send_descriptor(address, post_authorization):
@@ -293,7 +314,6 @@ def send_descriptor(address, post_authorization):
         </obj>' % { "app_id" : settings.DEVICE_ID }
 
     sensors = SensorInteractor.get_all_active()
-    print sensors
     if sensors:
 
         # type = []
@@ -353,12 +373,14 @@ def send_descriptor(address, post_authorization):
 
         return r
 
-    except ConnectionError:
+    except ConnectionError as e:
         flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
+        app.logger.error("Sending descriptor: %s" % (str(e), ))
         return False
 
-    except Timeout:
+    except Timeout as e:
         flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
+        app.logger.error("Sending descriptor: %s" % (str(e), ))
         return False
 
 # def get_sensor_value(pin):
@@ -394,12 +416,14 @@ def get_sensor_value(sensor, method_path):
 
         return r.text
 
-    except ConnectionError:
+    except ConnectionError as e:
         flash("Cannot connect to device!", category={ 'theme': 'error' } )
+        app.logger.error("Getting value for sensor: %s" % (str(e), ))
         return False
 
-    except Timeout:
+    except Timeout as e:
         flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
+        app.logger.error("Getting value for sensor: %s" % (str(e), ))
         return False
 
 # def get_sensor_values():
@@ -444,27 +468,29 @@ def send_sensor_value(address, post_authorization, sensor_identificator, method_
 
         return r
 
-    except ConnectionError:
+    except ConnectionError as e:
         flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
+        app.logger.error("Sending sensor value to GW: %s" % (str(e), ))
         return False
 
-    except Timeout:
+    except Timeout as e:
         flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
+        app.logger.error("Sending sensor value to GW: %s" % (str(e), ))
         return False
 
 
-def toggle_sensor(type, pin):
+# def toggle_sensor(type, pin):
 
-    r = get_from_pin(type, pin)
+#     r = get_from_pin(type, pin)
 
-    if r.status_code == 200:
-        value = "0"
-        if r.text == "0":
-            value = "1"
+#     if r.status_code == 200:
+#         value = "0"
+#         if r.text == "0":
+#             value = "1"
 
-        r = write_to_pin(type, pin, value)
+#         r = write_to_pin(type, pin, value)
 
-        return r
+#         return r
 
 
 def delete_sensor(address, post_authorization, sensor_identificator, method_path):
@@ -484,12 +510,14 @@ def delete_sensor(address, post_authorization, sensor_identificator, method_path
 
         return r
 
-    except ConnectionError:
+    except ConnectionError as e:
         flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
+        app.logger.error("Deleting sensor from GW: %s" % (str(e), ))
         return False
 
-    except Timeout:
+    except Timeout as e:
         flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
+        app.logger.error("Deleting sensor from GW: %s" % (str(e), ))
         return False
 
 
@@ -509,10 +537,12 @@ def delete_device(address, post_authorization):
 
         return r
 
-    except ConnectionError:
+    except ConnectionError as e:
         flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
+        app.logger.error("Deleting device from GW: %s" % (str(e), ))
         return False
 
-    except Timeout:
+    except Timeout as e:
         flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
+        app.logger.error("Deleting device from GW: %s" % (str(e), ))
         return False

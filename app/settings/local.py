@@ -3,6 +3,8 @@ STATIC_FOLDER = "web"
 
 DEBUG = False
 
+INIT = False
+
 IP = "192.168.1.224"
 IP_DNS = "arduino.local"
 LOCAL = "localhost"

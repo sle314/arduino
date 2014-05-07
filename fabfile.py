@@ -3,14 +3,12 @@ import os
 import sys
 import time
 
-from fabric.api import local, hosts
-from fabric.colors import green, red, yellow
+from fabric.api import hosts, local
 from fabric.state import output as fab_output
 
 from app.settings import local as settings
 
 fab_output["running"] = False
-
 
 def clean():
     """ Brise .pyc fileove """
@@ -23,31 +21,87 @@ def clean():
 def start(port=None):
     """ Pokrece lokalni server """
     sys.path.append("./")
+
     from app.web import app
+    from app.helpers.request_helper import init_pin_modes
+
+    get_ip()
+
+    app.logger.info("-/-/-/-START FLASK APP START-/-/-/-")
+
+    init_pin_modes()
+
     if port:
         app.run(host="0.0.0.0", port=int(port), debug=settings.DEBUG)
     else:
         app.run(host="0.0.0.0", debug=settings.DEBUG)
-
-    from app.helpers.request_helper import init_pin_modes
-    init_pin_modes()
+    app.logger.info("-/-/-/-END FLASK APP START-/-/-/-")
 
 
-def create_db():
+def backup_db(name=None):
+    """ Backupira bazu podataka """
+    if not name:
+        name = raw_input("Please enter a filename (default arduino.db.bkp): ")
+        if not name:
+            name = "arduino.db.bkp"
+
+    import shutil
+    shutil.copy("app/db/arduino.db", "app/db/%s" % name)
+
+
+def restore_db(name=None):
+    """ Restorea bazu podataka """
+    if not name:
+        name = raw_input("Please enter a filename (default arduino.db.bkp): ")
+        if not name:
+            name = "arduino.db.bkp"
+    import shutil
+    shutil.copy("app/db/%s" % name, "app/db/arduino.db")
+
+
+def reinit_db():
+    drop_db()
+    create_db(True)
+
+
+def create_db(reinit=False):
     """ Stvara bazu podataka """
-    from app.web import db
-    db.create_all()
+    if not reinit:
+        val = raw_input("Do you want to restore the db? (y/n) ")
+        if val and val != "n":
+            val2 = raw_input("Please enter a name (default arduino.db.bkp): ")
+            if not val2:
+                val2 = "arduino.db.bkp"
+            restore_db(val2)
+        else:
+            from app.web import db
+            db.create_all()
+            init_db()
+    else:
+        from app.web import db
+        db.create_all()
+        init_db()
+
 
 def drop_db():
-    """ Brise bazu podataka """
+    """ Brise bazu podataka i pita da li ju prethodno zelimo spremiti """
+    val = raw_input("Do you want to backup the db? (y/n) ")
+    if val and val != "n":
+        val2 = raw_input("Please enter a name (default arduino.db.bkp): ")
+        if not val2:
+            val2 = "arduino.db.bkp"
+        backup_db(val2)
+
     from app.web import db
     db.drop_all()
 
+
 def init_db():
     """
-    inicijalizira bazu podataka
-    prije koristenja potrebno je zakomentirati zadnje tri linije u datoteci app/web/__init__.py
+    Inicijalizira podatke u bazi za uredaj i module
+    settings.INIT je postavljen zbog ciklickih ovisnosti
     """
+    settings.INIT = True
     from app.arduino.hardware import Hardware, Module, Pin, Method
 
     for h in settings.HARDWARE:
@@ -69,3 +123,14 @@ def init_db():
             p = Pin( pin )
             p.save()
 
+    get_ip()
+
+
+def get_ip():
+    import json
+    from app.arduino.common import PublicIPInteractor
+    from urllib2 import urlopen
+    ip = PublicIPInteractor.get()
+    currentIP = json.load(urlopen('http://httpbin.org/ip'))['origin'].rstrip()
+    ip.address = currentIP
+    ip.save()

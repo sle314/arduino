@@ -32,20 +32,20 @@
             </div>
             <div class="row center-row">
                 <div class="middle-buttons center-col">
-                    <div class="col-xs-3 center-col">
+                    <div class="center-col">
                         {% if not sensor.active %}
                             <a title="activate" href="#" class="activate btn btn-sm btn-success" ><span class="glyphicon glyphicon-ok"></span></a>
                         {% else %}
                             <a title="deactivate" href="/sensors/{{ sensor.id }}/deactivate/" class="btn btn-sm btn-danger" ><span class="glyphicon glyphicon-remove"></span></a>
                         {% endif %}
                     </div>
-                    <div class="col-xs-3 center-col">
+                    <div class="center-col">
                        <a title="get and send all method values to gateway" href="/sensors/{{ sensor.id }}/send_values/" class="btn btn-sm btn-info" {% if not sensor.active %}disabled{% endif %}><span class="glyphicon glyphicon-floppy-open"></span></a>
                     </div>
-                    <div class="col-xs-3 center-col">
+                    <div class="center-col">
                         <a title="edit" class="btn btn-sm btn-info" href="/sensors/{{sensor.id}}/edit/"><span class="glyphicon glyphicon-pencil"></span></a>
                     </div>
-                    <div class="col-xs-3 center-col">
+                    <div class="center-col">
                         <form method="POST" action="/sensors/delete/">
                             <input type="hidden" name="sensor_id" value="{{ sensor.id }}" />
                             <button title="delete" class="btn btn-sm btn-danger" type="submit"><span class="glyphicon glyphicon-trash"></span></button>
@@ -53,13 +53,17 @@
                     </div>
                 </div>
             </div>
-            {% if sensor.active %}
+            {% set disabled=False %}
+            {% if not sensor.active %}
+                {% set disabled=True %}
+            {% endif %}
+            {% with disabled=disabled %}
                 <div class="row methods center-row">
                     <div class="col-xs-12">
                         {% for sensor_method in sensor.sensor_methods %}
                             <a class="btn btn-info btn-xs {{ sensor_method.method.type }} {% if sensor_method.method.type != 'write' %}request-button{% endif %}" data-module="{{ sensor.module_id }}" data-method="{{ sensor_method.method.id }}" data-sensor="{{ sensor.id }}" data-path="{{ sensor_method.method.path }}" data-type="{{ sensor_method.method.type }}"
                             data-href="/{{ sensor.module.hardware.path }}/{{ sensor.module.path }}/{{ sensor_method.method.path }}/{{ sensor.pin.pin }}"
-                                href="#" data-loading-text="Requesting...">
+                                href="#" data-loading-text="Requesting..." {% if disabled %}disabled{% endif %}>
                                 {{ sensor_method.method.name }}
                                 {% if sensor_method.method.type in ['read', 'write'] %}
                                     (
@@ -75,7 +79,7 @@
                         {% endfor %}
                     </div>
                 </div>
-            {% endif %}
+            {% endwith %}
         </div>
     </div>
 {% endfor %}

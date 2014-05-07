@@ -7,7 +7,7 @@ from flask import render_template, request, session, redirect, flash, json
 from requests.exceptions import ConnectionError, Timeout
 from app.arduino.sensor import SensorInteractor
 from app.arduino.gateway import Gateway, GatewayInteractor
-from app.helpers.request_helper import check_gateway, check_device, init_device, init_descriptor, send_descriptor, init_sensor, send_sensor_value, delete_device
+from app.helpers import request_helper
 
 import requests
 import re
@@ -20,15 +20,17 @@ def gateway():
     address = request.form.get("address")
     address = address if "http://" in address else "http://%s" % address
 
+    if GatewayInteractor.check_address(address):
+        flash("Gateway wasn't saved beacuse it already exists for this device! If you need to change the authorization, edit the existing one!", category={'theme':'warning', 'life': 6000})
+        return redirect("/")
+
     from app.helpers.base64_helper import b64encode_quote
     authorization = b64encode_quote(request.form.get("authorization"))
 
-    r = check_gateway(address, authorization)
+    r = request_helper.check_gateway(address, authorization)
 
     if r != False:
         if r.status_code == 200:
-            session['error'] = False
-
             if r.text:
                 m = re.findall(r'<m2m:holderRef>(.*?)</m2m:holderRef>', r.text)
                 gateway.post_authorization = b64encode_quote(m[1])
@@ -43,12 +45,12 @@ def gateway():
                     flash("Gateway wasn't saved beacuse it already exists for this device! If you need to change the authorization, edit the existing one!", category={'theme':'warning', 'life': 6000})
                     return redirect("/")
 
-                r = check_device(address, authorization)
+                r = request_helper.check_device(address, authorization)
 
                 if r != False:
                     if r.status_code == 200:
                         flash("Device is already registered on gateway!", category={ 'theme': 'success' } )
-                        gateway.device_registered = False
+                        gateway.device_registered = True
                         gateway.save()
 
                         # remove_device_from_gateway(gateway.id)
@@ -58,11 +60,12 @@ def gateway():
                         flash("Device is not registered.", category={ 'theme': 'warning' } )
             else:
                 flash('Response was not a valid accessRights XML!', category={ 'theme': 'error' } )
+                app.logger.error("Adding gateway: Invalid accessRights XML")
 
         elif r.status_code == 400 or r.status_code == 404:
             flash("Wrong authorization URI! Gateway wasn't added!", category={ 'theme': 'error' } )
+            app.logger.error("Adding gateway: Wrong authorization URI")
 
-    session['error'] = True
     return redirect('/')
 
 
@@ -70,27 +73,23 @@ def gateway():
 def register_device_on_gateway(gateway_id):
     gateway = GatewayInteractor.get(gateway_id)
     if gateway:
-        r = init_device(gateway.address, gateway.post_authorization)
+        r = request_helper.init_device(gateway.address, gateway.post_authorization)
 
         if r != False:
             if r.status_code == 201 or r.status_code == 409:
-
-                r = init_descriptor(gateway.address, gateway.post_authorization)
-
+                r = request_helper.init_descriptor(gateway.address, gateway.post_authorization)
                 if r != False:
-                    r = send_descriptor(gateway.address, gateway.post_authorization)
-
+                    r = request_helper.send_descriptor(gateway.address, gateway.post_authorization)
                     if r != False:
                         sensors = SensorInteractor.get_all_active()
-
                         if sensors:
                             for sensor in sensors:
                                 if sensor.active:
                                     sensor.save()
                                     for sensor_method in sensor.sensor_methods:
-                                        init_sensor(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path)
-                                        if sensor_method.method.type in ["read", "write"] and sensor_method.value:
-                                            send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path, sensor_method.value)
+                                        r = request_helper.init_sensor(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path)
+                                        if r != False and sensor_method.method.type in ["read", "write"] and sensor_method.value:
+                                            request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path, sensor_method.value)
 
                         flash('Device successfully registered!', category={ 'theme': 'success' } )
                         gateway.device_registered = True
@@ -98,11 +97,14 @@ def register_device_on_gateway(gateway_id):
 
             elif r.status_code == 400 or r.status_code == 401:
                 flash('Wrong authorization for registration!', category={ 'theme': 'error' } )
+                app.logger.error("Registering device: Wrong authorization")
 
             else:
                 flash('Something went wrong!', category={ 'theme': 'error' } )
+                app.logger.error("Registering device: Unknown error during device initialization")
     else:
         flash("Gateway does not exist!", category={ 'theme': 'error' } )
+        app.logger.error("Registering device: Gateway doesn't exist")
 
     return redirect("/")
 
@@ -113,7 +115,7 @@ def remove_device_from_gateway(gateway_id):
     gateway = GatewayInteractor.get(gateway_id)
     if gateway:
 
-        r = delete_device(gateway.address, gateway.post_authorization)
+        r = request_helper.delete_device(gateway.address, gateway.post_authorization)
 
         if r != False:
             if r.status_code == 204:
@@ -126,8 +128,10 @@ def remove_device_from_gateway(gateway_id):
                 gateway.save()
             else:
                 flash('Something went wrong!', category={ 'theme': 'error' } )
+                app.logger.error("Unregistering device: Unknown error during device deletion")
     else:
         flash("Gateway does not exist!", category={ 'theme': 'error' } )
+        app.logger.error("Unregistering device: Gateway doesn't exist")
 
     return redirect('/')
 
@@ -140,6 +144,7 @@ def remove_gateway():
         flash("Gateway successfully removed!", category={ 'theme': 'success' } )
     else:
         flash("Could not remove gateway!", category={ 'theme': 'error' } )
+        app.logger.error("Deleting gateway: Could not delete GW from db")
     return redirect("/")
 
 
@@ -153,12 +158,12 @@ def edit_gateway(gateway_id):
 
         if authorization == gateway.authorization and name == gateway.name:
             flash("You didn't change anything!", category={ 'theme' : 'warning'} )
+            return redirect("/gateway/%d/edit/" % (gateway_id, ))
 
-        r = check_gateway(gateway.address, authorization)
+        r = request_helper.check_gateway(gateway.address, authorization)
 
         if r != False:
             if r.status_code == 200:
-
                 if r.text:
                     m = re.findall(r'<m2m:holderRef>(.*?)</m2m:holderRef>', r.text)
                     gateway.post_authorization = b64encode_quote(m[1])
@@ -167,7 +172,7 @@ def edit_gateway(gateway_id):
 
                     gateway.save()
 
-                    r = check_device(gateway.address, authorization)
+                    r = request_helper.check_device(gateway.address, authorization)
 
                     if r != False:
                         if r.status_code == 200:
@@ -179,13 +184,16 @@ def edit_gateway(gateway_id):
                             flash("Device is not registered.", category={ 'theme': 'warning' } )
                 else:
                     flash('Response was not a valid accessRights XML!', category={ 'theme': 'error' } )
+                    app.logger.error("Editing gateway: Invalid accessRights XML")
 
             elif r.status_code == 400 or r.status_code == 404:
                 flash("Wrong authorization URI! Gateway wasn't edited!", category={ 'theme': 'error' } )
+                app.logger.error("Editing gateway: Wrong authorization URI")
                 return edit_gateway_view(gateway_id)
 
     else:
         flash("Gateway doesn't exist!", category={ 'theme' : 'error'} )
+        app.logger.error("Editing gateway: Gateway does not exist")
     return redirect('/')
 
 
@@ -196,4 +204,5 @@ def edit_gateway_view(gateway_id):
         return render_template("gateway/edit.html", gateway=gateway)
     else:
         flash("Gateway doesn't exist!", category={ 'theme' : 'error'} )
+        app.logger.error("Gateway editing: Gateway doesn't exist")
         return redirect('/')

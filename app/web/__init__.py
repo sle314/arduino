@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 import sys
 import os
 import locale
@@ -26,12 +25,15 @@ db = SQLAlchemy(app)
 
 from app.helpers import filters
 
-logger = logging.StreamHandler()
-
-logger.setLevel(logging.INFO)
+import logging
+from logging.handlers import RotatingFileHandler
+from logging import Formatter
+logger = RotatingFileHandler('/mnt/sda1/dev/arduino/arduino.log', maxBytes=100*1000)
+logger.setFormatter(Formatter('%(asctime)s %(levelname)s: %(message)s'))
 app.logger.addHandler(logger)
 app.logger.setLevel(logging.INFO)
 
-from app.web.common_view import *
-from app.web.sensor_view import *
-from app.web.gateway_view import *
+if not settings.INIT:
+	from app.web.common_view import *
+	from app.web.sensor_view import *
+	from app.web.gateway_view import *

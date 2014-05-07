@@ -39,11 +39,13 @@
                         </div>
                         <div class="col-xs-12 center">
                             <button class="btn btn-info submit-sensor" type="button">
-                                <span class="glyphicon glyphicon-ok"></span>
-                                &nbsp;
                                 {% if sensor and sensor.id %}
+                                    <span class="glyphicon glyphicon-ok"></span>
+                                    &nbsp;
                                     Edit
                                 {% else %}
+                                    <span class="glyphicon glyphicon-plus"></span>
+                                    &nbsp;
                                     Add
                                 {% endif %}
                             </button>
@@ -59,28 +61,31 @@
 {% block includes %}
     <script type="text/javascript">
 
-        $(document).ready(function(event){
+        $(document).ready(function(){
 
             var canSubmit = true;
 
             $("input[name='identificator']").on('input', function(event){
 
-                canSubmit = true;
-                var old_id = "";
-                {% if sensor and sensor.identificator %}
-                    old_id = "{{ sensor.identificator }}";
-                {% endif %}
+                delay(function(){
+                    canSubmit = true;
+                    var old_id = "";
+                    {% if sensor and sensor.identificator %}
+                        old_id = "{{ sensor.identificator }}";
+                    {% endif %}
 
-                var new_id = $("input[name='identificator']").val();
+                    var new_id = $("input[name='identificator']").val();
 
-                if (old_id != new_id && !utils.checkIdentificator(new_id)){
-                    $(event.currentTarget).parent().addClass("has-error");
-                    canSubmit = false;
-                }
-                else{
-                    $('div.jGrowl').find('.jGrowl-close').trigger('click');
-                    $(event.currentTarget).parent().removeClass("has-error");
-                }
+                    if (old_id != new_id && !utils.checkIdentificator(new_id)){
+                        $(event.currentTarget).parent().addClass("has-error");
+                        canSubmit = false;
+                    }
+                    else{
+                        $('div.jGrowl').find('.jGrowl-close').trigger('click');
+                        $(event.currentTarget).parent().removeClass("has-error");
+                    }
+
+                }, 400 );
 
                 return false;
 

@@ -23,7 +23,7 @@
                 <input class="form-control" type="text" name="authorization" value="{% if gateway %}{{ gateway.authorization | b64decode }}{% else %}{{ settings.AUTH }}{% endif %}" />
             </div>
             <div class="col-xs-12 center">
-                <button class="btn btn-info" type="submit"><span class="glyphicon glyphicon-plus"></span>&nbsp;{% if not gateway %}Add{% else %}Edit{% endif %}</button>
+                <button class="btn btn-info" type="submit">{% if not gateway %}<span class="glyphicon glyphicon-plus"></span>&nbsp;Add{% else %}<span class="glyphicon glyphicon-ok"></span>&nbsp;Edit{% endif %}</button>
             </div>
         </form>
     </div>

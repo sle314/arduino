@@ -57,7 +57,7 @@
                 return false;
             });
 
-            $("a.read, a.call").on('click', function(event){
+            $("a.read:not(:disabled), a.call:not(:disabled)").on('click', function(event){
 
                 var path = $(event.currentTarget).data("href");
                 var sensor_id = $(event.currentTarget).data("sensor");
@@ -100,7 +100,7 @@
                 return false;
             });
 
-            $("a.write").on('click', function(event){
+            $("a.write:not(:disabled)").on('click', function(event){
                 var target = $(event.currentTarget);
                 var sensor_id = $(event.currentTarget).data("sensor");
                 var module_id = target.data("module");

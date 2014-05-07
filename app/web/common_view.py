@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import sys
 from app.settings import local as settings
 
 from app.web import app
@@ -35,13 +36,25 @@ def check_pin(identificator, pin):
 
 @app.route('/cron/')
 def cron():
-    for gateway in GatewayInteractor.get_all_device_registered():
-        for sensor in SensorInteractor.get_all_active():
-            for sensor_method in sensor.sensor_methods:
-                if sensor_method.method.type == "read":
-                    sensor_method.value = request_helper.get_sensor_value(sensor, sensor_method.method.path)
-                    sensor_method.save()
-                    request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path, sensor_method.value)
+    app.logger.info("----START cron START----")
+    try:
+        for gateway in GatewayInteractor.get_all_device_registered():
+            for sensor in SensorInteractor.get_all_active():
+                for sensor_method in sensor.sensor_methods:
+                    if sensor_method.method.type in ["read", "write"]:
+                        if sensor_method.method.type == "read":
+                            r = request_helper.get_sensor_value(sensor, sensor_method.method.path)
+                            if r != False:
+                                sensor_method.value = r
+                                sensor_method.save()
+                                if sensor_method.value:
+                                    r = request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path, sensor_method.value)
+                                    if r != False:
+                                        log = "%s - %s %s %s - %s (%s)" % ( gateway.address, sensor.module.hardware.name, sensor.module.name, sensor.identificator, sensor_method.method.path, sensor_method.value )
+                                        app.logger.info(log)
+    except:
+        app.logger.error( "%s\n" % sys.exc_info()[0] )
+    app.logger.info("----END cron END----")
     return make_response()
 
 
@@ -55,24 +68,40 @@ def ip_cron():
     currentIP = json.load(urlopen('http://httpbin.org/ip'))['origin'].rstrip()
 
     if (not ip.address or ip.address != currentIP):
-        ip.address = currentIP
-        ip.save()
-        for gateway in GatewayInteractor.get_all_device_registered():
-            r = request_helper.delete_device(gateway.address, gateway.post_authorization)
-            print "Delete dev: %d" % r.status_code
-            r = request_helper.init_device(gateway.address, gateway.post_authorization)
-            print "Init dev: %d" % r.status_code
-            r = request_helper.init_descriptor(gateway.address, gateway.post_authorization)
-            print "Init descriptor: %d" % r.status_code
-            r = request_helper.send_descriptor(gateway.address, gateway.post_authorization)
-            print "Descriptor: %d" % r.status_code
-            for sensor in SensorInteractor.get_all_active():
-                for sensor_method in sensor.sensor_methods:
-                    r = request_helper.delete_sensor(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path)
-                    print "Delete sensor method %s: %d" % (sensor_method.method.path, r.status_code)
-                    r = request_helper.init_sensor(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path)
-                    print "Init sensor method %s: %d" % (sensor_method.method.path, r.status_code)
-                    if method.type in ["read", "write"]:
-                        r = request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path, sensor_method.value)
-                        print "Send method value %s: %d" % (sensor_method.method.path, r.status_code)
+        app.logger.info("---- START IP cron START----")
+        app.logger.info("IP ADDRESS - %s" % currentIP)
+        try:
+            for gateway in GatewayInteractor.get_all_device_registered():
+                r = request_helper.delete_device(gateway.address, gateway.post_authorization)
+                if r != False:
+                    app.logger.info("Delete dev: %d" % r.status_code)
+                    r = request_helper.init_device(gateway.address, gateway.post_authorization)
+                    if r != False:
+                        ip.address = currentIP
+                        ip.save()
+                        app.logger.info("Init dev: %d" % r.status_code)
+                        r = request_helper.init_descriptor(gateway.address, gateway.post_authorization)
+                        if r != False:
+                            app.logger.info("Init descriptor: %d" % r.status_code)
+                            r = request_helper.send_descriptor(gateway.address, gateway.post_authorization)
+                            if r != False:
+                                app.logger.info("Descriptor: %d" % r.status_code)
+                                for sensor in SensorInteractor.get_all_active():
+                                    for sensor_method in sensor.sensor_methods:
+                                        r = request_helper.delete_sensor(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path)
+                                        if r != False:
+                                            app.logger.info("Delete sensor method %s: %d" % (sensor_method.method.path, r.status_code))
+                                            r = request_helper.init_sensor(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path)
+                                            if r != False:
+                                                app.logger.info("Init sensor method %s: %d" % (sensor_method.method.path, r.status_code))
+                                                if sensor_method.method.type in ["read", "write"]:
+                                                    r = request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path, sensor_method.value)
+                                                    if r != False:
+                                                        app.logger.info("Send method value %s: %d" % (sensor_method.method.path, r.status_code))
+                                                        log = "%s - %s %s %s - %s (%s)" % ( gateway.address, sensor.module.hardware.name, sensor.module.name, sensor.identificator, sensor_method.method.path, sensor_method.value )
+                                                        app.logger.info(log)
+        except:
+            app.logger.error( "%s\n" % sys.exc_info()[0] )
+
+        app.logger.info("----END IP cron END----")
     return make_response()

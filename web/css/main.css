@@ -138,8 +138,8 @@ div.jGrowl div.success{
     margin-bottom: 20px;
 }
 
-.sensors.details-view .sensor .middle-buttons{
-    width: 255px;
+.sensors.details-view .sensor .middle-buttons > div{
+    margin: 0px 5px;
 }
 
 .sensors.details-view .sensor .bottom-buttons{
