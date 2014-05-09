@@ -1,5 +1,5 @@
+# -*- coding: utf-8 -*-
 from app.arduino.common.models import Public_IP
-
 
 class PublicIPInteractor:
 

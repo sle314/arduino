@@ -67,18 +67,19 @@ def ip_cron():
     ip = PublicIPInteractor.get()
     currentIP = json.load(urlopen('http://httpbin.org/ip'))['origin'].rstrip()
 
+    app.logger.info("---- START IP cron START----")
+    app.logger.info("IP ADDRESS - %s" % currentIP)
+
     if (not ip.address or ip.address != currentIP):
-        app.logger.info("---- START IP cron START----")
-        app.logger.info("IP ADDRESS - %s" % currentIP)
         try:
             for gateway in GatewayInteractor.get_all_device_registered():
                 r = request_helper.delete_device(gateway.address, gateway.post_authorization)
                 if r != False:
                     app.logger.info("Delete dev: %d" % r.status_code)
+                    ip.address = currentIP
+                    ip.save()
                     r = request_helper.init_device(gateway.address, gateway.post_authorization)
                     if r != False:
-                        ip.address = currentIP
-                        ip.save()
                         app.logger.info("Init dev: %d" % r.status_code)
                         r = request_helper.init_descriptor(gateway.address, gateway.post_authorization)
                         if r != False:
@@ -100,8 +101,12 @@ def ip_cron():
                                                         app.logger.info("Send method value %s: %d" % (sensor_method.method.path, r.status_code))
                                                         log = "%s - %s %s %s - %s (%s)" % ( gateway.address, sensor.module.hardware.name, sensor.module.name, sensor.identificator, sensor_method.method.path, sensor_method.value )
                                                         app.logger.info(log)
+                        else:
+                            ip.address = ""
+                            ip.save()
         except:
             app.logger.error( "%s\n" % sys.exc_info()[0] )
-
-        app.logger.info("----END IP cron END----")
+    else:
+        app.logger.warning("address wasn't changed")
+    app.logger.info("----END IP cron END----")
     return make_response()

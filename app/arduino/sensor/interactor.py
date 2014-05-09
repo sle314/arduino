@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from app.arduino.sensor.models import Sensor, SensorMethods
 from app.arduino.hardware import Pin
 from sqlalchemy import and_, asc, desc

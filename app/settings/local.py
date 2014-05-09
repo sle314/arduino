@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 TEMPLATE_FOLDER = "web/templates"
 STATIC_FOLDER = "web"
 

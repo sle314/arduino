@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from app.arduino.gateway.models import Gateway
 
 class GatewayInteractor:

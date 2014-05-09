@@ -248,7 +248,6 @@ def sensor_send_value(sensor_id):
 @app.route('/retargeting1/sensors/<identificator>/<method_path>/<value>', methods = ['POST'])
 def retargeting_sensor_toggle(identificator, method_path, value=None):
     sensor = SensorInteractor.get_by_identificator(identificator)
-
     if sensor and sensor.active:
         method = MethodInteractor.get_by_path(method_path, sensor.module_id)
         if method:
@@ -267,6 +266,7 @@ def retargeting_sensor_toggle(identificator, method_path, value=None):
                                     sensor_method.save()
                                     for gateway in GatewayInteractor.get_all_device_registered():
                                         request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path, sensor_method.value)
+                                    app.logger.info("Retargeting call: %s - %s (%s))" % (identificator, method_path, value))
                             return make_response((r.text, r.status_code))
                         app.logger.error("Retargeting call: Can't reach sensor - %s" % (sensor.identificator, ))
                         return make_response(("400: The sensor can't be reached!", 400))

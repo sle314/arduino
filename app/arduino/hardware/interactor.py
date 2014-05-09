@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from app.arduino.hardware.models import Pin, Module, Method
 from sqlalchemy import and_
 

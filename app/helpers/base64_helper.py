@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 def b64encode_quote(s):
     from urllib import quote
     from base64 import b64encode

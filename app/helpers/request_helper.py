@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from app.web import app
 from app.settings import local as settings
 from requests.exceptions import ConnectionError, Timeout
