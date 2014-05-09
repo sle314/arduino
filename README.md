@@ -23,64 +23,89 @@ Once you have successfully managed to SSH into the device, you can use opkg to i
 
 Shell installation commands:
 
-opkg update
-opkg install python-openssl
-opkg install python-crypto
-opkg install python-sqlite3
-opkg install setuptools
+	opkg update
+	opkg install python-openssl
+	opkg install python-crypto
+	opkg install python-sqlite3
+	opkg install setuptools
 
 Next we need to install virtualenv with easy_install:
 
-/usr/bin/easy_install virtualenv
+	/usr/bin/easy_install virtualenv
 
 ===================================================================================================
 
 After installing the prerequisites, to use this project you need to follow these steps:
 
 1. create a new python virtual environment on the microSD card:
+
 	/usr/bin/virtualenv --system-site-packages /mnt/sda1/python
 
 2. activate the environment with the source command and keep it activated while using the app:
+
 	source /mnt/sda1/python/bin/activate
+
 	- to deactivate it and use the system python just type:
-		deactivate
+	
+	deactivate
 
 3. copy the project contents into a folder of your choice (I use /mnt/sda1/dev/arduino/)
 
 4. install the requirements with pip
 	- with the virtualenv activated enter:
-		pip install -r /mnt/sda1/<PROJECT_LOCATION>/app/config/requirements.txt
 
-5. cd to /mnt/sda1/<PROJECT_LOCATION>/ and use fabric to access different application commands:
+	pip install -r /mnt/sda1/PROJECT_LOCATION/app/config/requirements.txt
+
+5. cd to /mnt/sda1/PROJECT_LOCATION/ and use fabric to access different application commands:
+	
 	fab start:port
+	
 		- starts the server and app (default port is 5000)
+	
 	fab drop_db
+		
 		- empties the database
+	
 	fab create_db
 		- creates and initializes (shield/module/pin configuration in local.py) the database
+
 	fab backup_db
+		
 		- backs up the database
+	
 	fab restore_db
+		
 		- restores the database from a backup
 
 6. create the database with fab create_db if you already haven't (you should have an arduino.db sqlite3 empty database in app/db/)
+	
 	- copy the app/db/empty_arduino.db file to app/db/arduino.db
+	
 	OR
+	
 	- to create the db, install sqlite3 on your computer through the terminal/command prompt with the commands:
-		sqlite3 arduino.db (opens up the sqlite3 shell)
+		
+	sqlite3 arduino.db (opens up the sqlite3 shell)
+		
 		- when in the shell enter:
-			.tables (inits an empty db)
-			.quit (exits)
-		- copy the created arduino.db file to:
-			app/db/
+	
+	.tables (inits an empty db)
+	.quit (exits)
+		
+		- copy the created arduino.db file to app/db/
 
-7. start the server and app with the command (you need to be located in /mnt/sda1/<PROJECT_LOCATION>/):
+7. start the server and app with the command (you need to be located in /mnt/sda1/PROJECT_LOCATION/):
+	
 	fab start
 
 8. open up the web-application in your browser by visiting:
+	
 	arduino.local:PORT
+		
 		- if you haven't specified a PORT in fab start, the default one is 5000
+	
 	- if arduino.local doesn't work, try enterng ARDUINO_IP_ADDRESS:PORT in the address bar of your browser
+		
 		- installing the Apple Bonjour printing driver on Windows should solve this issue
 
 9. the web-application usage is pretty self-explanatory
@@ -92,7 +117,7 @@ STARTUP AND CRON:
 The advanced configuration panel enables you to define commands which should be executed on device startup (System -> Startup in the menu, then scroll to the bottom of the page).
 If you want the server and app to start this way, enter the following lines before the exit 0 line:
 
-	cd /mnt/sda1/<PROJECT_LOCATION>/
+	cd /mnt/sda1/PROJECT_LOCATION/
 	source /mnt/sda1/python/bin/activate
 	fab start
 
@@ -104,10 +129,11 @@ OPTIONAL BUT RECOMENDED:
 If you want to edit the source in your preffered text editor while it is on the YUN, you need to enable sshfs and mount the yun file system as a device/mount point via SSH.
 To do this you need to install the package openssh-sftp-server on the yun. You can do this through the advanced configuration panel as mentioned before, or by SSH-ing into to YUN and executing the following commands:
 
-opkg update
-opkg install openssh-sftp-server
+	opkg update
+	opkg install openssh-sftp-server
 
 On windows you can use WIN-SSHFS (https://code.google.com/p/win-sshfs/).
+	
 	- SSH login with public keys doesn't work so just use the password
 
 On Linux you can use Gigolo.
