@@ -56,26 +56,27 @@ After installing the prerequisites, to use this project you need to follow these
 
 	pip install -r /mnt/sda1/PROJECT_LOCATION/app/config/requirements.txt
 
-5. cd to /mnt/sda1/PROJECT_LOCATION/ and use fabric to access different application commands:
+5. cd to /mnt/sda1/PROJECT_LOCATION/ and use fabric to access different application commands:	
 	
-	fab start:port
+	- start the server and app (default port is 5000)
 	
-		- starts the server and app (default port is 5000)
-	
-	fab drop_db
-		
-		- empties the database
-	
-	fab create_db
-		- creates and initializes (shield/module/pin configuration in local.py) the database
+		fab start:port
 
-	fab backup_db
-		
-		- backs up the database
+	- empty the database
+
+		fab drop_db		
 	
-	fab restore_db
+	- create and initialize (shield/module/pin configuration in local.py) the database
+
+		fab create_db
 		
-		- restores the database from a backup
+	- back up the database
+
+		fab backup_db
+	
+	- restore the database from a backup
+
+		fab restore_db
 
 6. create the database with fab create_db if you already haven't (you should have an arduino.db sqlite3 empty database in app/db/)
 	
@@ -85,14 +86,14 @@ After installing the prerequisites, to use this project you need to follow these
 	
 	- to create the db, install sqlite3 on your computer through the terminal/command prompt with the commands:
 		
-	sqlite3 arduino.db (opens up the sqlite3 shell)
+		sqlite3 arduino.db (opens up the sqlite3 shell)
 		
-		- when in the shell enter:
+	- when in the shell enter:
 	
-	.tables (inits an empty db)
-	.quit (exits)
+		.tables (inits an empty db)
+		.quit (exits)
 		
-		- copy the created arduino.db file to app/db/
+	- copy the created arduino.db file to app/db/
 
 7. start the server and app with the command (you need to be located in /mnt/sda1/PROJECT_LOCATION/):
 	
@@ -102,11 +103,11 @@ After installing the prerequisites, to use this project you need to follow these
 	
 	arduino.local:PORT
 		
-		- if you haven't specified a PORT in fab start, the default one is 5000
+	- if you haven't specified a PORT in fab start, the default one is 5000
 	
 	- if arduino.local doesn't work, try enterng ARDUINO_IP_ADDRESS:PORT in the address bar of your browser
 		
-		- installing the Apple Bonjour printing driver on Windows should solve this issue
+	- installing the Apple Bonjour printing driver on Windows should solve this issue
 
 9. the web-application usage is pretty self-explanatory
 
