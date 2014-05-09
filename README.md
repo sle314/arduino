@@ -16,7 +16,7 @@ Alongside adding a shield to the Linino side of the YUN, the shield's modules an
 ===================================================================================================
 
 First you need to SSH into the device (this won't be explained here because there are plenty of tutorials which can be found through google).
-You should SSH as root with the password fot the device.
+You should SSH as root with the password for the device.
 If you want to be able to login without using the password every time, you can add your public ssh key to the authorized_keys on the YUN. Since it uses dropbear, the keys aren't located in ~/.ssh/, but in the file /etc/dropbear/authorized_keys. Just add your key to the end of that file and you should be good to go.
 
 Once you have successfully managed to SSH into the device, you can use opkg to install the needed packages. This can also be done through the advanced configuration panel by using the "Software" option under the "System" dropdown menu.
