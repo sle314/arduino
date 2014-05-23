@@ -6,7 +6,7 @@ from app.web import app
 
 from app.helpers import request_helper
 
-from flask import render_template, request, make_response
+from flask import render_template, request, make_response, abort
 from app.arduino.gateway import GatewayInteractor
 from app.arduino.sensor import SensorInteractor
 
@@ -15,7 +15,14 @@ from flask import json, jsonify
 @app.before_request
 def before_request():
     if request.endpoint != "static":
-        pass
+        if not ".".join(request.remote_addr.split(".")[0:3]) == "161.53.19" and\
+        not ".".join(request.remote_addr.split(".")[0:3]) == "192.168.1" and\
+        not request.remote_addr == "127.0.0.1" and\
+        not request.remote_addr in [gateway.address.split(":")[1][2:] for gateway in GatewayInteractor.get_all_device_registered()]:
+            app.logger.error( "%s" % "-"*20 )
+            app.logger.error( "REQUEST FOR ACCESS FROM NON-ALLOWED ADDRESS - %s" % (request.remote_addr, ) )
+            app.logger.error( "%s" % "-"*20 )
+            return abort(400)
 
 
 @app.route('/')
@@ -53,7 +60,7 @@ def cron():
                                         log = "%s - %s %s %s - %s (%s)" % ( gateway.address, sensor.module.hardware.name, sensor.module.name, sensor.identificator, sensor_method.method.path, sensor_method.value )
                                         app.logger.info(log)
     except:
-        app.logger.error( "%s\n" % sys.exc_info()[0] )
+        app.logger.error( "%s" % sys.exc_info()[0] )
     app.logger.info("----END cron END----")
     return make_response()
 
@@ -101,11 +108,19 @@ def ip_cron():
                                                         app.logger.info("Send method value %s: %d" % (sensor_method.method.path, r.status_code))
                                                         log = "%s - %s %s %s - %s (%s)" % ( gateway.address, sensor.module.hardware.name, sensor.module.name, sensor.identificator, sensor_method.method.path, sensor_method.value )
                                                         app.logger.info(log)
+                            else:
+                                ip.address = ""
+                                ip.save()
                         else:
                             ip.address = ""
                             ip.save()
+                    else:
+                        ip.address = ""
+                        ip.save()
         except:
-            app.logger.error( "%s\n" % sys.exc_info()[0] )
+            app.logger.error( "%s" % sys.exc_info()[0] )
+            ip.address = ""
+            ip.save()
     else:
         app.logger.warning("address wasn't changed")
     app.logger.info("----END IP cron END----")

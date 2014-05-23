@@ -27,11 +27,11 @@ db = SQLAlchemy(app)
 # import custom jinja filters
 from app.helpers import filters
 
-# define a rotating logger which saves 100MB of logs and then starts over
+# define a rotating logger which saves 10MB of logs and then starts over
 import logging
 from logging.handlers import RotatingFileHandler
 from logging import Formatter
-logger = RotatingFileHandler('/mnt/sda1/dev/arduino/arduino.log', maxBytes=100*1024*1024)
+logger = RotatingFileHandler('/mnt/sda1/dev/arduino/arduino.log', maxBytes=10*1024*1024)
 logger.setFormatter(Formatter('%(asctime)s %(levelname)s: %(message)s'))
 app.logger.addHandler(logger)
 app.logger.setLevel(logging.INFO)

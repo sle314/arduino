@@ -50,7 +50,7 @@
                 var identificator = $(event.currentTarget).parents(".sensor").find(".sensor-identificator").data("value");
                 utils.checkPin(pin, identificator, function(){ window.location = "/sensors/" + id + "/activate/" });
 
-                $("#pin-modal-proceed").unbind('click');
+                $("#pin-modal-proceed").off('click');
                 $("#pin-modal-proceed").on('click', function(){
                     window.location = "/sensors/" + id + "/activate/";
                 });
@@ -108,8 +108,7 @@
 
                 $(".write-modal").modal("show");
 
-                $('.write-modal').unbind('shown.bs.modal');
-
+                $('.write-modal').off('shown.bs.modal');
                 $('.write-modal').on('shown.bs.modal', function() {
                     if (target.find("span.method-value").html() != "-"){
                         $(".write-modal input[name='value']").val(target.find("span.method-value").html());
@@ -117,6 +116,7 @@
                     $(".write-modal input[name='value']").focus();
                 });
 
+                $("#method-write-submit").off('click');
                 $("#method-write-submit").on('click', function(event){
                     var val = $("input[name='value']").val();
 

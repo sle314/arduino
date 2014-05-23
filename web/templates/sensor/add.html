@@ -111,30 +111,29 @@
 
             $("#navbar-collapse li#add-sensor").addClass("active")
 
-            $("select[name='module']")
-            .on('change',
-                function(event){
-                    $("select[name='pin']").empty();
-                    var module_id = $(event.currentTarget).attr("value");
-                    var module_type = $('option:selected', $(event.currentTarget)).data("type");
-                    $.ajax({
-                        url: "/modules/" + module_id + "/pins/",
-                        success: function(data){
-                            $("select[name='pin']").html(data);
-                            {% if sensor and sensor.pin %}
-                                if (module_id == {{ sensor.module_id }} ){
-                                    $("select[name='pin']").val("{{ sensor.pin.id }}");
-                                }
-                            {% endif %}
-                        }
+            $("select[name='module']").on('change', function(event){
+                $("select[name='pin']").empty();
+                var module_id = $(event.currentTarget).attr("value");
+                var module_type = $('option:selected', $(event.currentTarget)).data("type");
 
-                    });
-                    $("input[name='type']").attr("disabled", false);
-                    if (module_type != "None"){
-                        $("input[name='type']").attr("disabled", true);
+                $.ajax({
+                    url: "/modules/" + module_id + "/pins/",
+                    success: function(data){
+                        $("select[name='pin']").html(data);
+                        {% if sensor and sensor.pin %}
+                            if (module_id == {{ sensor.module_id }} ){
+                                $("select[name='pin']").val("{{ sensor.pin.id }}");
+                            }
+                        {% endif %}
                     }
+
+                });
+
+                $("input[name='type']").attr("disabled", false);
+                if (module_type != "None"){
+                    $("input[name='type']").attr("disabled", true);
                 }
-            );
+            });
 
 
             {% if sensor and sensor.module_id %}

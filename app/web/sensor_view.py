@@ -247,39 +247,42 @@ def sensor_send_value(sensor_id):
 @app.route('/retargeting1/sensors/<identificator>/<method_path>', methods = ['POST'])
 @app.route('/retargeting1/sensors/<identificator>/<method_path>/<value>', methods = ['POST'])
 def retargeting_sensor_toggle(identificator, method_path, value=None):
-    sensor = SensorInteractor.get_by_identificator(identificator)
-    if sensor and sensor.active:
-        method = MethodInteractor.get_by_path(method_path, sensor.module_id)
-        if method:
-            if method.type != "read":
-                sensor_method = SensorMethodsInteractor.get(sensor.id, method.id)
-                if sensor_method:
-                    if sensor.pin.io == "output":
-                        path = "/%s/%s/%s/%s" % (sensor.module.hardware.path, sensor.module.path, method_path, sensor.pin.pin)
-                        if value:
-                            path += "/%s" % value
-                        r = request_helper.call_arduino_path( path )
-                        if r != False:
-                            if r.status_code == 200:
-                                if r.text:
-                                    sensor_method.value = r.text
-                                    sensor_method.save()
-                                    for gateway in GatewayInteractor.get_all_device_registered():
-                                        request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path, sensor_method.value)
-                                    app.logger.info("Retargeting call: %s - %s (%s))" % (identificator, method_path, value))
-                            return make_response((r.text, r.status_code))
-                        app.logger.error("Retargeting call: Can't reach sensor - %s" % (sensor.identificator, ))
-                        return make_response(("400: The sensor can't be reached!", 400))
-                    app.logger.error("Retargeting call: Called method for an INPUT sensor - %s" % (sensor.identificator))
-                    return make_response(("400: You are calling a method for an INPUT sensor!", 400))
-                app.logger.error("Retargeting call: Invalid method for sensor - %s (%s)" % (sensor.identificator, method_path))
-                return make_response(("400: Invalid method for sensor!", 400))
-            app.logger.error("Retargeting call: Called read method - %s (%s)" % (sensor.identificator, method_path))
-            return make_response(("400: You are calling a read method!", 400))
-        app.logger.error("Retargeting call: Invalid method for sensor - %s (%s)" % (sensor.identificator, method_path))
-        return make_response(("400: Invalid method for sensor!", 400))
-    app.logger.error("Retargeting call: Sensor doesn't exist - %s" % (identificator, ))
-    return make_response(("400: Non existant sensor!", 400))
+    if request.remote_addr in [gateway.address.split(":")[1][2:] for gateway in GatewayInteractor.get_all_device_registered()]:
+        sensor = SensorInteractor.get_by_identificator(identificator)
+        if sensor and sensor.active:
+            method = MethodInteractor.get_by_path(method_path, sensor.module_id)
+            if method:
+                if method.type != "read":
+                    sensor_method = SensorMethodsInteractor.get(sensor.id, method.id)
+                    if sensor_method:
+                        if sensor.pin.io == "output":
+                            path = "/%s/%s/%s/%s" % (sensor.module.hardware.path, sensor.module.path, method_path, sensor.pin.pin)
+                            if value:
+                                path += "/%s" % value
+                            r = request_helper.call_arduino_path( path )
+                            if r != False:
+                                if r.status_code == 200:
+                                    if r.text:
+                                        sensor_method.value = r.text
+                                        sensor_method.save()
+                                        for gateway in GatewayInteractor.get_all_device_registered():
+                                            request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path, sensor_method.value)
+                                        app.logger.info("Retargeting call: %s - %s (%s)" % (identificator, method_path, sensor_method.value))
+                                return make_response((r.text, r.status_code))
+                            app.logger.error("Retargeting call: Can't reach sensor - %s" % (sensor.identificator, ))
+                            return make_response(("400: The sensor can't be reached!", 400))
+                        app.logger.error("Retargeting call: Called method for an INPUT sensor - %s" % (sensor.identificator))
+                        return make_response(("400: You are calling a method for an INPUT sensor!", 400))
+                    app.logger.error("Retargeting call: Invalid method for sensor - %s (%s)" % (sensor.identificator, method_path))
+                    return make_response(("400: Invalid method for sensor!", 400))
+                app.logger.error("Retargeting call: Called read method - %s (%s)" % (sensor.identificator, method_path))
+                return make_response(("400: You are calling a read method!", 400))
+            app.logger.error("Retargeting call: Invalid method for sensor - %s (%s)" % (sensor.identificator, method_path))
+            return make_response(("400: Invalid method for sensor!", 400))
+        app.logger.error("Retargeting call: Sensor doesn't exist - %s" % (identificator, ))
+        return make_response(("400: Non existant sensor!", 400))
+    app.logger.error("Retargeting call: Request didn't come from registered GW - %s" % (request.remote_addr, ))
+    return make_response(("400: You are not allowed to access this device!", 400))
 
 
 @app.route('/sensors/<int:sensor_id>/activate/')
@@ -373,7 +376,7 @@ def invoke_sensor_method(sensor_id, method_id):
     path = request.form.get("path")
     r = request_helper.call_arduino_path(path)
 
-    app.logger.info("Invoking method: %s (status %d)" % (r.text, r.status_code))
+    app.logger.info("Invoking method %d for sensor %d: %s (status %d)" % (method_id, sensor_id, r.text, r.status_code))
 
     if r != False:
         if r.status_code == 200:
