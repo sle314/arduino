@@ -2,7 +2,17 @@
 TEMPLATE_FOLDER = "web/templates"
 STATIC_FOLDER = "web"
 
+# ENV = "test"
+ENV = "arduino"
+# ENV = "prod"
+
+# SERVER_IP = "127.0.0.1"
+SERVER_IP = "0.0.0.0"
+
+# DEBUG = True
 DEBUG = False
+
+WORKERS = 5
 
 INIT = False
 

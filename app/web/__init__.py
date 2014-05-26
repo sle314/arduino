@@ -12,7 +12,7 @@ sys.setdefaultencoding('utf-8')
 
 # create Flask app with template and static folder definitions
 app = Flask(
-		"app",
+        "app",
         template_folder='%s/%s' % (os.getcwd(), settings.TEMPLATE_FOLDER),
         static_folder='%s/%s' % (os.getcwd(), settings.STATIC_FOLDER),
         static_url_path='/static'
@@ -31,7 +31,7 @@ from app.helpers import filters
 import logging
 from logging.handlers import RotatingFileHandler
 from logging import Formatter
-logger = RotatingFileHandler('/mnt/sda1/dev/arduino/arduino.log', maxBytes=10*1024*1024)
+logger = RotatingFileHandler('%s/arduino.log' % os.getcwd(), maxBytes=10*1024*1024)
 logger.setFormatter(Formatter('%(asctime)s %(levelname)s: %(message)s'))
 app.logger.addHandler(logger)
 app.logger.setLevel(logging.INFO)
@@ -39,6 +39,13 @@ app.logger.setLevel(logging.INFO)
 # import views if we are starting the server and not initializing the db values
 # import crashes initialization because of circular dependencies
 if not settings.INIT:
-	from app.web.common_view import *
-	from app.web.sensor_view import *
-	from app.web.gateway_view import *
+    from app.web.common_view import *
+    from app.web.sensor_view import *
+    from app.web.gateway_view import *
+
+if settings.ENV == "prod":
+    from werkzeug.contrib.fixers import ProxyFix
+    app.wsgi_app = ProxyFix(app.wsgi_app)
+
+if __name__ == '__main__':
+    app.run()

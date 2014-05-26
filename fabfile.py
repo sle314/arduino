@@ -18,7 +18,7 @@ def clean():
 
 
 @hosts('localhost')
-def start(port=None):
+def start(port=5000):
     """ Pokrece lokalni server """
     sys.path.append("./")
 
@@ -31,10 +31,12 @@ def start(port=None):
 
     init_pin_modes()
 
-    if port:
-        app.run(host="0.0.0.0", port=int(port), debug=settings.DEBUG)
+    if settings.ENV in ["test","arduino"]:
+        app.run(host=settings.SERVER_IP, port=int(port), debug=settings.DEBUG)
     else:
-        app.run(host="0.0.0.0", debug=settings.DEBUG)
+        from subprocess import call
+        call("gunicorn -b %s:%s -w %d app.web:app" % (settings.SERVER_IP, port, settings.WORKERS), shell=True)
+
     app.logger.info("-/-/-/-END FLASK APP START-/-/-/-")
 
 
