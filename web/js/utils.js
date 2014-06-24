@@ -47,11 +47,10 @@ var utils = {
     		else
     			form = form_id
     	}
-
-    	$(form).on('submit', function(event){
+        $(form).on('submit', function(event){
             var fail = false;
             $("input:not(:disabled)", event.currentTarget).each(function(){
-                if(ignoreList){
+                if(ignoreList != undefined){
                     if ($.inArray($(this).attr('name'), ignoreList) == -1){
                         if ($(this).val() == ""){
                             $(this).parents(".form-group").addClass("has-error");

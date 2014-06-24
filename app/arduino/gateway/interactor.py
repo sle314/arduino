@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from app.arduino.gateway.models import Gateway
+from sqlalchemy import and_
 
 class GatewayInteractor:
 
@@ -15,7 +16,7 @@ class GatewayInteractor:
 
     @staticmethod
     def get_all_device_registered():
-        gateways = Gateway.query.filter(Gateway.device_registered==True).all()
+        gateways = Gateway.query.filter(and_( Gateway.device_registered==True, Gateway.active==True )).all()
         return gateways
 
     @staticmethod

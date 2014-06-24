@@ -363,14 +363,6 @@ def deactivate_sensor(sensor_id, descriptor=True):
     return redirect("/sensors/")
 
 
-@app.route('/modules/<int:module_id>/pins/', methods=['GET'])
-def get_pins_for_module(module_id):
-    pins = ModuleInteractor.get_pins(module_id)
-    if pins:
-        return render_template("/common/pin_select.html", pins = pins)
-    return make_response()
-
-
 @app.route('/sensors/<int:sensor_id>/methods/<int:method_id>/invoke/', methods=['POST'])
 def invoke_sensor_method(sensor_id, method_id):
     path = request.form.get("path")

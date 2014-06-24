@@ -9,20 +9,24 @@ from app.helpers import request_helper
 from flask import render_template, request, make_response, abort
 from app.arduino.gateway import GatewayInteractor
 from app.arduino.sensor import SensorInteractor
+from app.arduino.hardware import ModuleInteractor
 
 from flask import json, jsonify
+
 
 @app.before_request
 def before_request():
     if request.endpoint != "static":
-        if not ".".join(request.remote_addr.split(".")[0:3]) == "161.53.19" and\
-        not ".".join(request.remote_addr.split(".")[0:3]) == "192.168.1" and\
-        not request.remote_addr == "127.0.0.1" and\
-        not request.remote_addr in [gateway.address.split(":")[1][2:] for gateway in GatewayInteractor.get_all_device_registered()]:
-            app.logger.error( "%s" % "-"*20 )
-            app.logger.error( "REQUEST FOR ACCESS FROM NON-ALLOWED ADDRESS - %s" % (request.remote_addr, ) )
-            app.logger.error( "%s" % "-"*20 )
-            return abort(400)
+        # ak ose zeli onemoguciti pristup s vanjskih adresa koje nisu gateway
+        # if not ".".join(request.remote_addr.split(".")[0:3]) == "161.53.19" and\
+        # not ".".join(request.remote_addr.split(".")[0:3]) == "192.168.1" and\
+        # not request.remote_addr == "127.0.0.1" and\
+        # not request.remote_addr in [gateway.address.split(":")[1][2:] for gateway in GatewayInteractor.get_all_device_registered()]:
+        #     app.logger.error( "%s" % "-"*20 )
+        #     app.logger.error( "REQUEST FOR ACCESS FROM NON-ALLOWED ADDRESS - %s" % (request.remote_addr, ) )
+        #     app.logger.error( "%s" % "-"*20 )
+        #     return abort(400)
+        pass
 
 
 @app.route('/')
@@ -39,6 +43,14 @@ def check_pin(identificator, pin):
             if sensor.identificator != identificator:
                 sensor_dict[str(sensor.id)] = sensor.identificator
     return jsonify(sensor_dict)
+
+
+@app.route('/modules/<int:module_id>/pins/', methods=['GET'])
+def get_pins_for_module(module_id):
+    pins = ModuleInteractor.get_pins(module_id)
+    if pins:
+        return render_template("/common/pin_select.html", pins = pins)
+    return make_response()
 
 
 @app.route('/cron/')
@@ -72,12 +84,12 @@ def ip_cron():
     from urllib2 import urlopen
 
     ip = PublicIPInteractor.get()
-    currentIP = json.load(urlopen('http://httpbin.org/ip'))['origin'].rstrip()
+    currentIP = "%s:%s" % ( json.load(urlopen('http://httpbin.org/ip'))['origin'].rstrip(), settings.PORT )
 
     app.logger.info("---- START IP cron START----")
     app.logger.info("IP ADDRESS - %s" % currentIP)
 
-    if (not ip.address or ip.address != currentIP):
+    if ( not ip.address or ip.address != currentIP ):
         try:
             for gateway in GatewayInteractor.get_all_device_registered():
                 r = request_helper.delete_device(gateway.address, gateway.post_authorization)

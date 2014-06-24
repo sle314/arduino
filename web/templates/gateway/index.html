@@ -12,11 +12,17 @@
                                 {% for gateway in gateways %}
                                     <div class="col-xs-12 gateway">
                                         <div class="row center">
-                                            <div class="col-xs-12">
-                                                <b>{{ gateway.name }}</b><br/>
+                                            <div class="col-xs-12 gateway-details">
+                                                <b class="{% if gateway.active %}active-green{% else %}inactive-red{% endif %}">{{ gateway.name }}</b>
+                                                <br/>
                                                 <span id="gateway-address">({{ gateway.address }})</span>
                                             </div>
                                             <div class="col-xs-12">
+                                                {% if not gateway.active %}
+                                                    <a title="activate" href="/gateway/{{ gateway.id }}/activate/" class="activate btn btn-xs btn-success" ><span class="glyphicon glyphicon-ok"></span></a>
+                                                {% else %}
+                                                    <a title="deactivate" href="/gateway/{{ gateway.id }}/deactivate/" class="btn btn-xs btn-danger" ><span class="glyphicon glyphicon-remove"></span></a>
+                                                {% endif %}
                                                 <a href="/gateway/{{ gateway.id }}/edit/" class="btn btn-xs btn-info"><span class="glyphicon glyphicon-pencil"></span></a>
                                                 <form class="center-col" action="/gateway/delete/" method="POST">
                                                     <input type="hidden" value="{{ gateway.id }}" name="gateway_id"/>

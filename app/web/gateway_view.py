@@ -37,8 +37,8 @@ def gateway():
                 gateway.name = request.form.get("name") if request.form.get("name") else m[1].split("//")[1].split(".")[0]
                 gateway.address = address
                 gateway.authorization = authorization
-                gateway.active = True
-
+                if (request.form.get("is_active")):
+                    gateway.active = True
                 try:
                     gateway.save()
                 except:
@@ -155,8 +155,9 @@ def edit_gateway(gateway_id):
         from app.helpers.base64_helper import b64encode_quote
         authorization = b64encode_quote(request.form.get("authorization"))
         name = request.form.get("name")
+        is_active = True if request.form.get("is_active") else False
 
-        if authorization == gateway.authorization and name == gateway.name:
+        if authorization == gateway.authorization and name == gateway.name and is_active==gateway.active:
             flash("You didn't change anything!", category={ 'theme' : 'warning'} )
             return redirect("/gateway/%d/edit/" % (gateway_id, ))
 
@@ -168,6 +169,8 @@ def edit_gateway(gateway_id):
                     m = re.findall(r'<m2m:holderRef>(.*?)</m2m:holderRef>', r.text)
                     gateway.post_authorization = b64encode_quote(m[1])
                     gateway.active = True
+                    if not is_active:
+                        gateway.active = False
                     gateway.name = name if name else m[1].split("//")[1].split(".")[0].lower()
 
                     gateway.save()
@@ -206,3 +209,27 @@ def edit_gateway_view(gateway_id):
         flash("Gateway doesn't exist!", category={ 'theme' : 'error'} )
         app.logger.error("Gateway editing: Gateway doesn't exist")
         return redirect('/')
+
+
+@app.route('/gateway/<int:gateway_id>/activate/')
+def activate_gateway(gateway_id):
+    gateway = GatewayInteractor.get(gateway_id)
+    if gateway:
+        gateway.active = True
+        gateway.save()
+    else:
+        flash("Gateway doesn't exist!", category={ 'theme' : 'error'} )
+        app.logger.error("Gateway activation: Gateway doesn't exist")
+    return redirect('/')
+
+
+@app.route('/gateway/<int:gateway_id>/deactivate/')
+def deactivate_gateway(gateway_id):
+    gateway = GatewayInteractor.get(gateway_id)
+    if gateway:
+        gateway.active = False
+        gateway.save()
+    else:
+        flash("Gateway doesn't exist!", category={ 'theme' : 'error'} )
+        app.logger.error("Gateway activation: Gateway doesn't exist")
+    return redirect('/')

@@ -1,4 +1,4 @@
-Arduino Flask project
+# Arduino Flask project
 =====================
 
 A project based on M2M communication which runs a Flask web-server (Python) on the Arduino YUN Linino making it possible to communicate with the device through a REST interface, using HTTP.
@@ -6,7 +6,7 @@ A project based on M2M communication which runs a Flask web-server (Python) on t
 The device and its sensors/actuators are registered on an Actility gateway.
 Their values and methods are stored on and can be viewed and used through the gateway without direct access to the device itself.
 
-The project also provides a web-application for associating gateways with and adding/removing sensors to the device.
+The project also provides a web-application for associating gateways with the device and its sensors and adding/removing sensors to the device.
 It currently uses a TinkerKit! shield and its modules, but it should be possible to use others as well.
 
 The shield/modules and their methods need to be added to the app/settings/local.py configuration file alongside the TinkerKit! values which can be used as an example. The shield pins need to be associated with the arduino pins and the module methods need to be defined so they can be used on the arduino side of the YUN.
@@ -28,12 +28,21 @@ Shell installation commands:
 	opkg install python-crypto
 	opkg install python-sqlite3
 	opkg install setuptools
+	pokg install fdisk
+	opkg install wget
+	opkg install e2fsprogs
 
 Next we need to install virtualenv with easy_install:
 
 	/usr/bin/easy_install virtualenv
 
 ===================================================================================================
+
+Insert your microSD card and format it if you haven't yet:
+	umount -f /mnt/sda1
+	mkfs.ext4 -O ^has_journal,extent /dev/sda1
+
+Take the card out and put it back in to mount it.
 
 After installing the prerequisites, to use this project you need to follow these steps:
 
@@ -45,69 +54,62 @@ After installing the prerequisites, to use this project you need to follow these
 
 	source /mnt/sda1/python/bin/activate
 
-	- to deactivate it and use the system python just type:
-	
+to deactivate it and use the system python just type:
+
 	deactivate
 
 3. copy the project contents into a folder of your choice (I use /mnt/sda1/dev/arduino/)
 
 4. install the requirements with pip
-	- with the virtualenv activated enter:
 
+with the virtualenv activated enter:
 	pip install -r /mnt/sda1/PROJECT_LOCATION/app/config/requirements.txt
 
-5. cd to /mnt/sda1/PROJECT_LOCATION/ and use fabric to access different application commands:	
-	
-	- start the server and app (default port is 5000)
-	
-		fab start:port
+5. cd to /mnt/sda1/PROJECT_LOCATION/ and use fabric to access different application commands:
 
-	- empty the database
+start the server and app (default port is 5000)
+	fab start:port
 
-		fab drop_db		
-	
-	- create and initialize (shield/module/pin configuration in local.py) the database
+empty the database
+	fab drop_db
 
-		fab create_db
-		
-	- back up the database
+create and initialize (shield/module/pin configuration in local.py) the database
+	fab create_db
 
-		fab backup_db
-	
-	- restore the database from a backup
+back up the database
+	fab backup_db
 
-		fab restore_db
+restore the database from a backup
+	fab restore_db
 
 6. create the database with fab create_db if you already haven't (you should have an arduino.db sqlite3 empty database in app/db/)
-	
-	- copy the app/db/empty_arduino.db file to app/db/arduino.db
-	
-	OR
-	
-	- to create the db, install sqlite3 on your computer through the terminal/command prompt with the commands:
-		
-		sqlite3 arduino.db (opens up the sqlite3 shell)
-		
-	- when in the shell enter:
-	
-		.tables (inits an empty db)
-		.quit (exits)
-		
-	- copy the created arduino.db file to app/db/
+
+copy the app/db/empty_arduino.db file to app/db/arduino.db
+
+OR
+
+to create the db, install sqlite3 on your computer through the terminal/command prompt with the commands:
+	sqlite3 arduino.db (opens up the sqlite3 shell)
+
+when in the shell enter:
+	.tables (inits an empty db)
+	.quit (exits)
+
+copy the created arduino.db file to app/db/
 
 7. start the server and app with the command (you need to be located in /mnt/sda1/PROJECT_LOCATION/):
-	
+
 	fab start
 
 8. open up the web-application in your browser by visiting:
-	
+
 	arduino.local:PORT
-		
-	- if you haven't specified a PORT in fab start, the default one is 5000
-	
-	- if arduino.local doesn't work, try enterng ARDUINO_IP_ADDRESS:PORT in the address bar of your browser
-		
-	- installing the Apple Bonjour printing driver on Windows should solve this issue
+
+if you haven't specified a PORT in fab start, the default one is 5000
+
+if arduino.local doesn't work, try enterng ARDUINO_IP_ADDRESS:PORT in the address bar of your browser
+
+installing the Apple Bonjour printing driver on Windows should solve this issue
 
 9. the web-application usage is pretty self-explanatory
 
@@ -122,6 +124,11 @@ If you want the server and app to start this way, enter the following lines befo
 	source /mnt/sda1/python/bin/activate
 	fab start
 
+To set the cron jobs go to System -> Scheduled tasks and enter:
+
+	*/30 * * * * curl http://localhost:PORT/ip_cron/
+	*/2 * * * * curl http://localhost:PORT/cron/
+
 ===================================================================================================
 
 
@@ -134,8 +141,8 @@ To do this you need to install the package openssh-sftp-server on the yun. You c
 	opkg install openssh-sftp-server
 
 On windows you can use WIN-SSHFS (https://code.google.com/p/win-sshfs/).
-	
-	- SSH login with public keys doesn't work so just use the password
+
+SSH login with public keys doesn't work so just use the password
 
 On Linux you can use Gigolo.
 

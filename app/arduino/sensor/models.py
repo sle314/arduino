@@ -18,14 +18,11 @@ class Sensor(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     type = db.Column(db.String(50), default="Sensing device")
-    # unit = db.Column(db.String(120), default="")
-    # toggle = db.Column(db.Boolean, default=False)
     identificator = db.Column(db.String(100), unique=True)
     active = db.Column(db.Boolean, default=False)
     pin_id = db.Column(db.Integer, db.ForeignKey('pin.id'))
     module_id = db.Column(db.Integer, db.ForeignKey('module.id'))
     timestamp = db.Column(db.DateTime)
-    # threshold = db.Column(db.Float, default=0.0)
 
     pin = db.relationship('Pin')
     module = db.relationship('Module')

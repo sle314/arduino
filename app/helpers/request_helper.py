@@ -36,54 +36,6 @@ def call_arduino_path(path):
         return False
 
 
-def get_from_pin(mode, pin):
-    try:
-        r = requests.get("http://%s%s/%s/%s" % (
-                settings.LOCAL,
-                settings.REST_ROOT,
-                mode,
-                pin
-                ),
-            timeout = 5
-        )
-
-        return r
-
-    except ConnectionError as e:
-        flash("Cannot connect to %s!" % settings.LOCAL, category={'theme' : 'error'})
-        app.logger.error("Getting value from pin: %s" % (str(e), ))
-        return False
-
-    except Timeout as e:
-        flash("Request timed out. Wrong IP?", category={'theme' : 'error'})
-        app.logger.error("Getting value from pin: %s" % (str(e), ))
-        return False
-
-def write_to_pin(mode, pin, value):
-    try:
-        r = requests.get("http://%s%s/%s/%s/%s" % (
-                settings.LOCAL,
-                settings.REST_ROOT,
-                mode,
-                pin,
-                value
-                ),
-            timeout = 5
-        )
-
-        flash("Pin %s value successfully written!" % pin, category={'theme' : 'success'} );
-        return r
-
-    except ConnectionError as e:
-        flash("Cannot connect to %s!" % settings.LOCAL, category={'theme' : 'error'})
-        app.logger.error("Writting value to pin: %s" % (str(e), ))
-        return False
-
-    except Timeout as e:
-        flash("Request timed out. Wrong IP?", category={'theme' : 'error'})
-        app.logger.error("Writting value to pin: %s" % (str(e), ))
-        return False
-
 def init_pin_modes():
     app.logger.info("----START init pin modes START----")
     sensors = SensorInteractor.get_all_active()
@@ -111,6 +63,7 @@ def init_pin_modes():
                     app.logger.error("Request timed out. Wrong IP?")
                     continue
     app.logger.info("----END init pin modes END----")
+
 
 def change_pin_mode(pin, mode):
     try:
@@ -189,7 +142,7 @@ def init_device(address, post_authorization):
 
     xml = '<?xml version="1.0" encoding="UTF-8"?>\
 <m2m:application appId="%(app_id)s" xmlns:m2m="http://uri.etsi.org/m2m">\
-    <m2m:aPoC>http://%(public_ip)s:%(port)s/</m2m:aPoC>\
+    <m2m:aPoC>http://%(public_ip)s/</m2m:aPoC>\
           <m2m:aPoCPaths>\
                     <m2m:aPoCPath>\
                               <m2m:path>/m2m/applications/%(app_id)s/retargeting1</m2m:path>\
@@ -198,10 +151,10 @@ def init_device(address, post_authorization):
           </m2m:aPoCPaths>\
     <m2m:accessRightID>/m2m/accessRights/Locadmin_AR/</m2m:accessRightID>\
     <m2m:searchStrings>\
-        <m2m:searchString>ETSI.ObjectType/ETSI.AN_NODE</m2m:searchString>\
-        <m2m:searchString>ETSI.ObjectTechnology/ACTILITY.%(app_id)s</m2m:searchString>\
+        <m2m:searchString>ETSI.ObjectType/ETSI.AN_APP</m2m:searchString>\
+        <m2m:searchString>ETSI.ObjectTechnology/FER.%(app_id)s</m2m:searchString>\
     </m2m:searchStrings>\
-</m2m:application>' % { "app_id" : settings.DEVICE_ID, "public_ip" : PublicIPInteractor.get().address, "port" : settings.PORT }
+</m2m:application>' % { "app_id" : settings.DEVICE_ID, "public_ip" : PublicIPInteractor.get().address }
 
     headers = {'Authorization': 'Basic %s' % post_authorization, "content-type":"application/xml"}
 
@@ -317,17 +270,11 @@ def send_descriptor(address, post_authorization):
     sensors = SensorInteractor.get_all_active()
     if sensors:
 
-        # type = []
-        # n = 1
         sub_xml = ''
 
         for sensor in sensors:
             for sensor_method in sensor.sensor_methods:
 
-                # sensor_type = sensor.type
-                # if sensor_type in type:
-                #     sensor_type = '%s%02d' % ( sensor.type, n)
-                #     n = n + 1
                 sub_xml = sub_xml + '<obj>\
                     <str name="interfaceID" val="%(sensor_identificator)s_%(method_path)s.Srv" />' % { "sensor_identificator" : sensor.identificator,"method_path" : sensor_method.method.path }
                 if sensor_method.method.type in ["read", "write"]:
@@ -341,13 +288,11 @@ def send_descriptor(address, post_authorization):
                 if sensor_method.method.type in ["write", "call"]:
                     path = sensor_method.method.path
                     if sensor_method.method.type == "write":
-                        path += "/<value-to-be-written>"
+                        path += "/[value-to-be-written]"
                     sub_xml = sub_xml + \
                         '<op type="%(method_type)s" name="%(method_name)s" href="/m2m/applications/%(app_id)s/retargeting1/sensors/%(sensor_id)s/%(method_path)s" />'\
                         % { "method_type" : sensor_method.method.type, "method_name" : sensor_method.method.path, "method_path" : path, "app_id" : settings.DEVICE_ID, "sensor_id" : sensor.identificator}
                 sub_xml = sub_xml + '</obj>'
-
-                # type.append(sensor_type)
 
                 init_sensor(address, post_authorization, sensor.identificator, sensor_method.method.path)
 
@@ -384,23 +329,6 @@ def send_descriptor(address, post_authorization):
         app.logger.error("Sending descriptor: %s" % (str(e), ))
         return False
 
-# def get_sensor_value(pin):
-#     try:
-#         r = requests.get("http://localhost/data/get/%s" % pin,
-#             timeout = 10
-#         )
-
-#         from flask import json
-
-#         return json.loads(r.text)['value']
-
-#     except ConnectionError:
-#         flash("Cannot connect to device!", category={ 'theme': 'error' } )
-#         return False
-
-#     except Timeout:
-#         flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
-#         return False
 
 def get_sensor_value(sensor, method_path):
     try:
@@ -426,24 +354,6 @@ def get_sensor_value(sensor, method_path):
         flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
         app.logger.error("Getting value for sensor: %s" % (str(e), ))
         return False
-
-# def get_sensor_values():
-#     try:
-#         r = requests.get("http://localhost/data/get",
-#             timeout = 5
-#         )
-
-#         from flask import json
-
-#         return json.loads(r.text)['value']
-
-#     except ConnectionError:
-#         # flash("Cannot connect to device!", category={ 'theme': 'error' } )
-#         return False
-
-#     except Timeout:
-#         # flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
-#         return False
 
 
 def send_sensor_value(address, post_authorization, sensor_identificator, method_path, value):
@@ -478,20 +388,6 @@ def send_sensor_value(address, post_authorization, sensor_identificator, method_
         flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
         app.logger.error("Sending sensor value to GW: %s" % (str(e), ))
         return False
-
-
-# def toggle_sensor(type, pin):
-
-#     r = get_from_pin(type, pin)
-
-#     if r.status_code == 200:
-#         value = "0"
-#         if r.text == "0":
-#             value = "1"
-
-#         r = write_to_pin(type, pin, value)
-
-#         return r
 
 
 def delete_sensor(address, post_authorization, sensor_identificator, method_path):

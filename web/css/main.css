@@ -28,6 +28,10 @@ h3.gateway-list-title, h3.gateway-add-title{
     margin-top: 20px;
 }
 
+.gateway-details{
+    margin-bottom: 5px;
+}
+
 #gateway-address{
     font-size: 0.7em;
 }
@@ -123,6 +127,13 @@ div.jGrowl div.success{
 .sensors.details-view .sensor table.info-table td.sensor-activity{
     font-size: 16px;
     padding-bottom: 15px;
+}
+
+.active-green{
+    color: #149c82;
+}
+.inactive-red{
+    color: #df2e1b;
 }
 
 .sensors.details-view .sensor table.info-table td.sensor-activity span.sensor-active, div.sensor-activity span.sensor-active{

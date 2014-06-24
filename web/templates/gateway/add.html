@@ -22,6 +22,13 @@
                 <label class="control-label" for="authorization">Authorization:</label>
                 <input class="form-control" type="text" name="authorization" value="{% if gateway %}{{ gateway.authorization | b64decode }}{% else %}{{ settings.AUTH }}{% endif %}" />
             </div>
+            <div class="col-xs-12 form-group center">
+                <p>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" name="is_active" {% if not gateway or (gateway and gateway.active) %}checked{% endif %} /> active
+                    </label>
+                </p>
+            </div>
             <div class="col-xs-12 center">
                 <button class="btn btn-info" type="submit">{% if not gateway %}<span class="glyphicon glyphicon-plus"></span>&nbsp;Add{% else %}<span class="glyphicon glyphicon-ok"></span>&nbsp;Edit{% endif %}</button>
             </div>

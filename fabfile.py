@@ -18,23 +18,23 @@ def clean():
 
 
 @hosts('localhost')
-def start(port=None):
-    """ Pokrece lokalni server """
+def start(port=5000):
+    """ Pokrece lokalni posluzitelj """
     sys.path.append("./")
 
     from app.web import app
     from app.helpers.request_helper import init_pin_modes
 
-    get_ip()
-
     app.logger.info("-/-/-/-START FLASK APP START-/-/-/-")
 
     init_pin_modes()
 
-    if port:
-        app.run(host="0.0.0.0", port=int(port), debug=settings.DEBUG)
+    if settings.ENV in ["test","arduino"]:
+        app.run(host=settings.SERVER_IP, port=int(settings.PORT), debug=settings.DEBUG)
     else:
-        app.run(host="0.0.0.0", debug=settings.DEBUG)
+        from subprocess import call
+        call("gunicorn -b %s:%s -w %d app.web:app" % (settings.SERVER_IP, settings.PORT, settings.WORKERS), shell=True)
+
     app.logger.info("-/-/-/-END FLASK APP START-/-/-/-")
 
 
@@ -60,6 +60,7 @@ def restore_db(name=None):
 
 
 def reinit_db():
+    """ Reinicijaliyira bazu podataka """
     drop_db()
     create_db(True)
 
@@ -132,5 +133,5 @@ def get_ip():
     from urllib2 import urlopen
     ip = PublicIPInteractor.get()
     currentIP = json.load(urlopen('http://httpbin.org/ip'))['origin'].rstrip()
-    ip.address = currentIP
+    ip.address = "%s:%s" % (currentIP, settings.PORT)
     ip.save()

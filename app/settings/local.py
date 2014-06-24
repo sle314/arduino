@@ -1,8 +1,20 @@
 # -*- coding: utf-8 -*-
 TEMPLATE_FOLDER = "web/templates"
 STATIC_FOLDER = "web"
+SECRET_KEY = 'A0sZr98j/3yX R~XHH!jmN]LWX/,?RT'
+LOG_LOCATION = '/arduino.log'
 
+# ENV = "test"
+ENV = "arduino"
+# ENV = "prod"
+
+# SERVER_IP = "127.0.0.1"
+SERVER_IP = "0.0.0.0"
+
+# DEBUG = True
 DEBUG = False
+
+WORKERS = 5
 
 INIT = False
 
@@ -13,6 +25,9 @@ LOCAL = "localhost"
 PORT = "5000"
 REST_ROOT = "/arduino"
 MODE = "/mode"
+
+DB_TYPE = "sqlite"
+DB_LOCATION = "/app/db/arduino.db"
 
 GATEWAY = "http://161.53.19.65:8080"
 NAME = "cyh-00606e334586"
@@ -222,13 +237,12 @@ HARDWARE = [
             { 'pin': 'A3', 'arduino_pin': 'A3', 'io': 'input', 'ad': 'analog' },
             { 'pin': 'A4', 'arduino_pin': 'A4', 'io': 'input', 'ad': 'analog' },
             { 'pin': 'A5', 'arduino_pin': 'A5', 'io': 'input', 'ad': 'analog' },
-
-            { 'pin': 'A0', 'arduino_pin': 'A0', 'io': 'input', 'ad': 'digital' },
-            { 'pin': 'A1', 'arduino_pin': 'A1', 'io': 'input', 'ad': 'digital' },
-            { 'pin': 'A2', 'arduino_pin': 'A2', 'io': 'input', 'ad': 'digital' },
-            { 'pin': 'A3', 'arduino_pin': 'A3', 'io': 'input', 'ad': 'digital' },
-            { 'pin': 'A4', 'arduino_pin': 'A4', 'io': 'input', 'ad': 'digital' },
-            { 'pin': 'A5', 'arduino_pin': 'A5', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'D3', 'arduino_pin': 'D3', 'io': 'input', 'ad': 'analog' },
+            { 'pin': 'D5', 'arduino_pin': 'D5', 'io': 'input', 'ad': 'analog' },
+            { 'pin': 'D6', 'arduino_pin': 'D6', 'io': 'input', 'ad': 'analog' },
+            { 'pin': 'D9', 'arduino_pin': 'D9', 'io': 'input', 'ad': 'analog' },
+            { 'pin': 'D10', 'arduino_pin': 'D10', 'io': 'input', 'ad': 'analog' },
+            { 'pin': 'D11', 'arduino_pin': 'D11', 'io': 'input', 'ad': 'analog' },
 
             { 'pin': 'D2', 'arduino_pin': 'D2', 'io': 'output', 'ad': 'digital' },
             { 'pin': 'D3', 'arduino_pin': 'D3', 'io': 'output', 'ad': 'digital' },
@@ -242,7 +256,19 @@ HARDWARE = [
             { 'pin': 'D11', 'arduino_pin': 'D11', 'io': 'output', 'ad': 'digital' },
             { 'pin': 'D12', 'arduino_pin': 'D12', 'io': 'output', 'ad': 'digital' },
             { 'pin': 'D13', 'arduino_pin': 'D13', 'io': 'output', 'ad': 'digital' },
+            { 'pin': 'A0', 'arduino_pin': 'A0', 'io': 'output', 'ad': 'digital' },
+            { 'pin': 'A1', 'arduino_pin': 'A1', 'io': 'output', 'ad': 'digital' },
+            { 'pin': 'A2', 'arduino_pin': 'A2', 'io': 'output', 'ad': 'digital' },
+            { 'pin': 'A3', 'arduino_pin': 'A3', 'io': 'output', 'ad': 'digital' },
+            { 'pin': 'A4', 'arduino_pin': 'A4', 'io': 'output', 'ad': 'digital' },
+            { 'pin': 'A5', 'arduino_pin': 'A5', 'io': 'output', 'ad': 'digital' },
 
+            { 'pin': 'A0', 'arduino_pin': 'A0', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'A1', 'arduino_pin': 'A1', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'A2', 'arduino_pin': 'A2', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'A3', 'arduino_pin': 'A3', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'A4', 'arduino_pin': 'A4', 'io': 'input', 'ad': 'digital' },
+            { 'pin': 'A5', 'arduino_pin': 'A5', 'io': 'input', 'ad': 'digital' },
             { 'pin': 'D2', 'arduino_pin': 'D2', 'io': 'input', 'ad': 'digital' },
             { 'pin': 'D3', 'arduino_pin': 'D3', 'io': 'input', 'ad': 'digital' },
             { 'pin': 'D4', 'arduino_pin': 'D4', 'io': 'input', 'ad': 'digital' },
@@ -262,6 +288,7 @@ HARDWARE = [
             { 'pin': 'D9', 'arduino_pin': 'D9', 'io': 'output', 'ad': 'analog' },
             { 'pin': 'D10', 'arduino_pin': 'D10', 'io': 'output', 'ad': 'analog' },
             { 'pin': 'D11', 'arduino_pin': 'D11', 'io': 'output', 'ad': 'analog' }
+
         ]
 
     }

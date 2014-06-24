@@ -30,11 +30,8 @@
                         <div class="col-xs-12 form-group center">
                             <p>
                                 <label class="checkbox-inline">
-                                    <input type="checkbox" name="is_active" {% if sensor and sensor.active %}checked{% endif %} /> active
+                                    <input type="checkbox" name="is_active" {% if not sensor or (sensor and sensor.active) %}checked{% endif %} /> active
                                 </label>
-                                <!-- <label class="toggle checkbox-inline" style="display: none;">
-                                    <input type="checkbox" name="toggle" {% if sensor and sensor.toggle %}checked{% endif %} /> toggleable
-                                </label> -->
                             </p>
                         </div>
                         <div class="col-xs-12 center">
@@ -92,11 +89,10 @@
             })
 
             $(".submit-sensor").on('click', function(event){
-
-                if(canSubmit){
+                var identificator = $("input[name='identificator']").val();
+                if(canSubmit && identificator != ""){
                     if ($("input[name='is_active']").is(":checked")){
                         var pin = $("select[name='pin'] option:selected").data("arduino-pin");
-                        var identificator = $("input[name='identificator']").val();
                         {% if sensor and sensor.identificator %}
                             identificator = "{{ sensor.identificator }}";
                         {% endif %}
@@ -105,6 +101,9 @@
                     else{
                         $("#sensor-form").submit();
                     }
+                }
+                else if (identificator == ""){
+                    $("#sensor-form").submit();
                 }
 
             });
@@ -130,8 +129,11 @@
                 });
 
                 $("input[name='type']").attr("disabled", false);
+                $("input[name='type']").val("");
+
                 if (module_type != "None"){
                     $("input[name='type']").attr("disabled", true);
+                    $("input[name='type']").val(module_type);
                 }
             });
 
