@@ -12,7 +12,7 @@ sys.setdefaultencoding('utf-8')
 
 # create Flask app with template and static folder definitions
 app = Flask(
-		"app",
+        "app",
         template_folder='%s/%s' % (os.getcwd(), settings.TEMPLATE_FOLDER),
         static_folder='%s/%s' % (os.getcwd(), settings.STATIC_FOLDER),
         static_url_path='/static'
