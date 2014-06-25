@@ -94,7 +94,7 @@ div.jGrowl div.success{
 .sensors.list-view .box{
     margin-bottom: 10px;
     padding-top: 15px;
-    padding-bottom: 20px;
+    padding-bottom: 10px;
 }
 .sensors.list-view .sensor-identificator{
     font-size: 1.1em;
