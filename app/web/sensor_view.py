@@ -368,9 +368,9 @@ def invoke_sensor_method(sensor_id, method_id):
     path = request.form.get("path")
     r = request_helper.call_arduino_path(path)
 
-    app.logger.info("Invoking method %d for sensor %d: %s (status %d)" % (method_id, sensor_id, r.text, r.status_code))
-
     if r != False:
+        app.logger.info("Invoking method %d for sensor %d: %s (status %d)" % (method_id, sensor_id, r.text, r.status_code))
+
         if r.status_code == 200:
             values = []
             sensor_method = SensorMethodsInteractor.get(sensor_id, method_id)
@@ -383,7 +383,7 @@ def invoke_sensor_method(sensor_id, method_id):
                         for sensor_method in sensor.sensor_methods:
                             if sensor_method.method.type == "read":
                                 rq = request_helper.call_arduino_path("/%s/%s/%s/%s" % (sensor.module.hardware.path, sensor.module.path, sensor_method.method.path, sensor.pin.pin))
-                                if rq != False:
+                                if rq != False and "not" not in rq.text:
                                     sensor_method.value = rq.text
                                     sensor_method.save()
                                 values.append({"path":sensor_method.method.path, "value" : sensor_method.value})

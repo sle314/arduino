@@ -23,17 +23,18 @@ def call_arduino_path(path):
             timeout = 5
         )
 
-        return r
+        if "not" not in r.text:
+            return r
 
     except ConnectionError as e:
-        flash("Cannot connect to %s!" % settings.LOCAL, category={'theme' : 'error'})
+        flash("Could not connect to %s!" % settings.LOCAL, category={'theme' : 'error'})
         app.logger.error("Calling arduino path: %s" % (str(e), ))
-        return False
 
     except Timeout as e:
         flash("Request timed out. Wrong IP?", category={'theme' : 'error'})
         app.logger.error("Calling arduino path: %s" % (str(e), ))
-        return False
+
+    return False
 
 
 def init_pin_modes():
@@ -56,7 +57,7 @@ def init_pin_modes():
                     app.logger.info("Pin %s mode successfully changed to %s!" % (sensor.pin.arduino_pin, sensor.pin.io))
 
                 except ConnectionError:
-                    app.logger.error("Cannot connect to %s!" % settings.IP_DNS)
+                    app.logger.error("Could not connect to %s!" % settings.IP_DNS)
                     continue
 
                 except Timeout:
@@ -78,7 +79,7 @@ def change_pin_mode(pin, mode):
         return r
 
     except ConnectionError as e:
-        flash("Cannot connect to %s!" % settings.LOCAL, category={ 'theme': 'error' } )
+        flash("Could not connect to %s!" % settings.LOCAL, category={ 'theme': 'error' } )
         app.logger.error("Changing pin mode: %s" % (str(e), ))
         return False
 
@@ -102,7 +103,7 @@ def check_device(address, authorization):
         return r
 
     except ConnectionError as e:
-        flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
+        flash("Could not connect to gateway %s!" % address, category={ 'theme': 'error' } )
         app.logger.error("Checking device: %s" % (str(e), ))
         return False
 
@@ -126,7 +127,7 @@ def check_gateway(address, authorization):
         return r
 
     except ConnectionError as e:
-        flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
+        flash("Could not connect to gateway %s!" % address, category={ 'theme': 'error' } )
         app.logger.error("Checking gateway: %s" % (str(e), ))
         return False
 
@@ -170,7 +171,7 @@ def init_device(address, post_authorization):
 
         return r
     except ConnectionError as e:
-        flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
+        flash("Could not connect to gateway %s!" % address, category={ 'theme': 'error' } )
         app.logger.error("Device initialization: %s" % (str(e), ))
         return False
 
@@ -206,7 +207,7 @@ def init_descriptor(address, post_authorization):
         return r
 
     except ConnectionError as e:
-        flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
+        flash("Could not connect to gateway %s!" % address, category={ 'theme': 'error' } )
         app.logger.error("Descriptor initialization: %s" % (str(e), ))
         return False
 
@@ -243,7 +244,7 @@ def init_sensor(address, post_authorization, sensor_identificator, method_path):
         return r
 
     except ConnectionError as e:
-        flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
+        flash("Could not connect to gateway %s!" % address, category={ 'theme': 'error' } )
         app.logger.error("Sensor initialization: %s" % (str(e), ))
         return False
 
@@ -320,7 +321,7 @@ def send_descriptor(address, post_authorization):
         return r
 
     except ConnectionError as e:
-        flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
+        flash("Could not connect to gateway %s!" % address, category={ 'theme': 'error' } )
         app.logger.error("Sending descriptor: %s" % (str(e), ))
         return False
 
@@ -343,17 +344,18 @@ def get_sensor_value(sensor, method_path):
             timeout = 5
         )
 
-        return r.text
+        if "not" not in r.text:
+            return r.text
 
     except ConnectionError as e:
-        flash("Cannot connect to device!", category={ 'theme': 'error' } )
+        flash("Could not connect to device!", category={ 'theme': 'error' } )
         app.logger.error("Getting value for sensor: %s" % (str(e), ))
-        return False
 
     except Timeout as e:
         flash("Request timed out. Wrong IP?", category={ 'theme': 'error' } )
         app.logger.error("Getting value for sensor: %s" % (str(e), ))
-        return False
+
+    return False
 
 
 def send_sensor_value(address, post_authorization, sensor_identificator, method_path, value):
@@ -380,7 +382,7 @@ def send_sensor_value(address, post_authorization, sensor_identificator, method_
         return r
 
     except ConnectionError as e:
-        flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
+        flash("Could not connect to gateway %s!" % address, category={ 'theme': 'error' } )
         app.logger.error("Sending sensor value to GW: %s" % (str(e), ))
         return False
 
@@ -408,7 +410,7 @@ def delete_sensor(address, post_authorization, sensor_identificator, method_path
         return r
 
     except ConnectionError as e:
-        flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
+        flash("Could not connect to gateway %s!" % address, category={ 'theme': 'error' } )
         app.logger.error("Deleting sensor from GW: %s" % (str(e), ))
         return False
 
@@ -435,7 +437,7 @@ def delete_device(address, post_authorization):
         return r
 
     except ConnectionError as e:
-        flash("Cannot connect to gateway %s!" % address, category={ 'theme': 'error' } )
+        flash("Could not connect to gateway %s!" % address, category={ 'theme': 'error' } )
         app.logger.error("Deleting device from GW: %s" % (str(e), ))
         return False
 
