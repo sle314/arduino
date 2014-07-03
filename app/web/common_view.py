@@ -71,6 +71,9 @@ def cron():
                                     if r != False:
                                         log = "%s - %s %s %s - %s (%s)" % ( gateway.address, sensor.module.hardware.name, sensor.module.name, sensor.identificator, sensor_method.method.path, sensor_method.value )
                                         app.logger.info(log)
+                            else:
+                                app.logger.error("CRON getting value: Couldn't connect to YunServer - sensor %s (method %s) - path %s" % (sensor.id, sensor_method.method.id, sensor_method.method.path))
+                                return make_response()
     except:
         app.logger.error( "%s" % sys.exc_info()[0] )
     app.logger.info("----END cron END----")

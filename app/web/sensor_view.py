@@ -227,11 +227,15 @@ def sensor_send_value(sensor_id):
                         if sensor_method.method.type == "write" and sensor_method.value:
                             r = request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path, sensor_method.value)
                         elif sensor_method.method.type == "read":
-                            sensor_method.value = request_helper.get_sensor_value(sensor, sensor_method.method.path)
-                            sensor_method.save()
-                            r = request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path, sensor_method.value)
-                    if r != False:
-                        flash('Sensor method values successfully sent to gateway %s!' % gateway.address, category={ 'theme' : 'success' } )
+                            r = request_helper.get_sensor_value(sensor, sensor_method.method.path)
+                            if r != False:
+                                sensor_method.value = r
+                                sensor_method.save()
+                                r = request_helper.send_sensor_value(gateway.address, gateway.post_authorization, sensor.identificator, sensor_method.method.path, sensor_method.value)
+                            else:
+                                app.logger.error("Getting value: Couldn't connect to YunServer - sensor %s (method %s) - path %s" % (sensor.id, sensor_method.method.id, sensor_method.method.path))
+                                return jsonify({ "value" : 'error', 'error' : 'The arduino server is not available.' })
+                    flash('Sensor method values successfully sent to gateway %s!' % gateway.address, category={ 'theme' : 'success' } )
             else:
                 flash("No gateways with registered device!", category={ 'theme': 'warning' } )
 
@@ -313,6 +317,9 @@ def activate_sensor(sensor_id):
                 if r != False:
                     sensor_method.value = r
                     sensor_method.save()
+                else:
+                    app.logger.error("Getting value: Couldn't connect to YunServer - sensor %s (method %s) - path %s" % (sensor.id, sensor_method.method.id, sensor_method.method.path))
+                    return jsonify({ "value" : 'error', 'error' : 'The arduino server is not available.' })
 
         gateways = GatewayInteractor.get_all_device_registered()
 
@@ -368,9 +375,9 @@ def invoke_sensor_method(sensor_id, method_id):
     path = request.form.get("path")
     r = request_helper.call_arduino_path(path)
 
-    if r != False:
-        app.logger.info("Invoking method %d for sensor %d: %s (status %d)" % (method_id, sensor_id, r.text, r.status_code))
+    app.logger.info("Invoking method %d for sensor %d: %s (status %d)" % (method_id, sensor_id, r.text, r.status_code))
 
+    if r != False:
         if r.status_code == 200:
             values = []
             sensor_method = SensorMethodsInteractor.get(sensor_id, method_id)
@@ -383,7 +390,7 @@ def invoke_sensor_method(sensor_id, method_id):
                         for sensor_method in sensor.sensor_methods:
                             if sensor_method.method.type == "read":
                                 rq = request_helper.call_arduino_path("/%s/%s/%s/%s" % (sensor.module.hardware.path, sensor.module.path, sensor_method.method.path, sensor.pin.pin))
-                                if rq != False and "not" not in rq.text:
+                                if rq != False and rq.status_code == 200:
                                     sensor_method.value = rq.text
                                     sensor_method.save()
                                 values.append({"path":sensor_method.method.path, "value" : sensor_method.value})
@@ -391,7 +398,7 @@ def invoke_sensor_method(sensor_id, method_id):
                 return jsonify({ "value" : r.text, "values": values })
         elif r.status_code == 500:
             app.logger.error("Invoking method: Couldn't connect to YunServer - sensor %s (method %s) - path %s" % (sensor_id, method_id, path))
-            return jsonify({ "value" : 'error', 'error' : 'The server is not available.' })
+            return jsonify({ "value" : 'error', 'error' : 'The arduino server is not available.' })
 
     app.logger.error("Invoking method: Something went wrong - sensor %s (method %s) - path %s" % (sensor_id, method_id, path))
     return jsonify({ "value" : 'error', 'error' : 'Something went wrong while contacting the server.' })
